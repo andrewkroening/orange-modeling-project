@@ -1,0 +1,101 @@
+---
+title: "Life Expectancy Data EDA"
+author: "Team Orange"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+packages <- (c("tidyverse", "stargazer", "ggfortify", "caTools", "car"))
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+```
+
+```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+# Import the data and look at the first six rows
+le <- read.csv(file = 'Life Expectancy Data.csv')
+#head(le)
+le15 <- le[which(le$Year==2015),]
+#head(le15)
+#summary(le15)
+fit <- lm(Life.expectancy ~ Adult.Mortality+infant.deaths+under.five.deaths+Hepatitis.B+Measles+BMI+Polio+HIV.AIDS+Diphtheria+GDP+Schooling+ Income.composition.of.resources+Status+Population+thinness..1.19.years+thinness.5.9.years, data=le15)
+stargazer(fit,header=FALSE, type="latex", 
+          no.space = TRUE,
+          report = ('vcsp*'), single.row = TRUE,
+          column.sep.width = "0.2pt",
+          font.size = "small",
+          title="Regression Summary")
+```
+```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+#library("tidyverse")
+#library("ggfortify")
+#autoplot(fit) [c(2,4)]
+
+par(mfrow = c(2, 2))
+
+plot(fit)
+```
+
+```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+fit2 <- lm(Life.expectancy ~ under.five.deaths+Hepatitis.B+Measles+BMI+Polio+HIV.AIDS+Diphtheria+GDP+Schooling+ Income.composition.of.resources+Status+Population+thinness..1.19.years, data=le15)
+stargazer(fit2,header=FALSE, type="latex", 
+          no.space = TRUE,
+          report = ('vcsp*'), single.row = TRUE,
+          column.sep.width = "0.2pt",
+          font.size = "small",
+          title="Regression Summary")
+par(mfrow = c(2, 2))
+plot(fit2)
+```
+
+
+```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+fit3 <- lm(Life.expectancy ~ Hepatitis.B+Measles+BMI+Polio+HIV.AIDS+Diphtheria+GDP+Schooling+ Income.composition.of.resources+Status+Population+thinness..1.19.years, data=le15)
+stargazer(fit3,header=FALSE, type="latex", 
+          no.space = TRUE,
+          report = ('vcsp*'), single.row = TRUE,
+          column.sep.width = "0.2pt",
+          font.size = "small",
+          title="Regression Summary")
+par(mfrow = c(2, 2))
+plot(fit3)
+```
+
+\newpage
+
+```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+fit4 <- lm(Life.expectancy ~ HIV.AIDS+Income.composition.of.resources+Status, data=le15)
+stargazer(fit4,header=FALSE, type="latex", 
+          no.space = TRUE,
+          report = ('vcsp*'), single.row = TRUE,
+          column.sep.width = "0.2pt",
+          font.size = "small",
+          title="Regression Summary")
+par(mfrow = c(2, 2))
+plot(fit4)
+```
+
+\newpage
+
+```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+fit5 <- lm(Life.expectancy ~ Status+HIV.AIDS, data=le15)
+stargazer(fit5,header=FALSE, type="latex", 
+          no.space = TRUE,
+          report = ('vcsp*'), single.row = TRUE,
+          column.sep.width = "0.2pt",
+          font.size = "small",
+          title="Regression Summary")
+par(mfrow = c(2, 2))
+plot(fit5)
+```
