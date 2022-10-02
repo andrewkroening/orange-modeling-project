@@ -1,0 +1,25 @@
+---
+title: "Project Proposal"
+author: "Dingkun Yang, Echo Chen, Andrew Kroening, Pooja Kabber"
+output: pdf_document
+date: "November 4th, 2022"
+---
+
+In part 2, you will produce a statistical analysis plan. The plan should be at most 2 pages, produced in R Markdown, and include the following
+
+# Overview 
+
+*Briefly describe the datset and research questions*
+
+# Models 
+
+*Describe the type of model you will use for each research question. Justify your selections.* 
+
+#Variable Selection
+
+*How will you perform variable selection for your models? For each research
+question, list any variables that you are selecting a priori to be included in your model.*
+
+# Challenge
+
+*How do you plan to address the challenges you presented in part 1?*

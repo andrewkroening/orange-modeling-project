@@ -1,0 +1,8 @@
+---
+title: "Project Proposal"
+author: "Echo Chen, Andrew Kroening, Pooja Kabber, Dingkun Yang"
+output: pdf_document
+date: "November 22nd, 2022"
+---
+
+# Report Draft

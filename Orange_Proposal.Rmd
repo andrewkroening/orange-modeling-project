@@ -1,0 +1,20 @@
+---
+title: "Project Proposal"
+author: "Andrew Kroening, Pooja Kabber, Dingkun Yang, Echo Chen"
+output: pdf_document
+date: "`r Sys.Date()`"
+---
+
+# Research Proposal
+
+### Selected Dataset
+
+*Team*
+
+### Research Question #1
+
+*Q*
+
+### Research Question #2
+
+*Q*
