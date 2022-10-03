@@ -9,12 +9,29 @@ date: "`r Sys.Date()`"
 
 ### Selected Dataset
 
-*Team*
+*The team selected the World Health Organization's Life Expectancy Dataset. This dataset contains observations of 193 countries in 20 variables across a roughly ten-year period.*
 
 ### Research Question #1
 
-*Q*
+*Research Question #1 will be a prediction question. Our group will explore Life Expectancy in the year 2014 as a function of these possible variables:*
+
+* *Percentage Expenditure*
+* *Hepatitis B*
+* *Measles*
+* *Polio*
+* *HIV/AIDS*
+* *Diptheria*
+* *GDP*
+* *Schooling*
+* *Income Composition of Resources*
+* *Country Status (Developed/Developing)*
+* *Population*
+
+***The specific question we will answer is: "Can we use social, economic, and public health-related factors to accurately predict life expectancy 
+in a country?"***
 
 ### Research Question #2
 
-*Q*
+*Research Question #2 will be inference. Our group will seek to infer a country's category as developed or developing based on the best-fit model.*
+
+***The specific question we will answer is: "How did disease and mortality rates, along with national economic factors, contribute to a country's development status in 2014?"***
