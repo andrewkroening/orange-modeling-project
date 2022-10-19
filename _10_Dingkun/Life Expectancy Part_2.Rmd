@@ -75,9 +75,9 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
 
 ### After piror selection:
 
-When building a model, it is not wise use all variables when they are highly correlated with each other. To represent immunization coverage, among "Hepatitis.B","Polio", "Diphtheria tetanus toxoid and pertussis (DTP3)", we decide to use "polio", since it has the highest correlation between Life Expectancy. Similarly, we see extremely high correlation between GDP and percentage expenditure, but both of them would have meaningful interpreation, we may want to decide which one goes to our final model when we conduct model selection.
+When building a model, it is not wise use all variables when they are highly correlated with each other. To represent immunization coverage, among "Hepatitis.B","Polio", "Diphtheria tetanus toxoid and pertussis (DTP3)", we decide to use "polio", since it has the highest correlation between Life Expectancy. Similarly, we see extremely high correlation between GDP and percentage expenditure, but both of them would have meaningful interpretation, we may want to decide which one goes to our final model when we conduct model selection.
 
-On the one hand, with domain knowledge, we know "Adult.Mortality", "infant.deaths" and "under.five.deaths" variables are directly correlated to Life Expectancy, we choose to drop them from the predictor variable list; on the other hand, we are interested in "HIV.AIDS" variable (Deaths per 1 000 live births HIV/AIDS (0-4 years)
+On the one hand, with domain knowledge, we know "Adult.Mortality", "infant.deaths" and "under.five.deaths" variables are directly correlated to Life Expectancy, we choose to drop them from the predictor variable list; on the other hand, we are interested in "HIV.AIDS" variable (Deaths per 1 000 live births HIV/AIDS (0-4 years), .... (please add some reasons here)
 
 We would like to omit the variables have Low correlation between Life Expectancy: "Measles"; however, we do want to include "population" because of our interest. 
 
@@ -124,7 +124,7 @@ corrplot(le14_cont_piror.cor, method="color", col=col(200),
 
 ### Transformation if needed when modeling
 
-We may want to use log transformation for population and GDP, since the magnitude of gaps are huge. But for other two, we need more investigation, plus the difficulty of interpretation.
+When checking box plots of all variables, we find 4 variables may need some transformation.
 
 ```{r, fig.width=7, fig.height=5, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 ## If interested, Comment out to see whats going on ##
@@ -195,35 +195,52 @@ c7 <- ggplot(le14, aes(x=Population))+
 grid.arrange(c3,c5,c6,c7)
 ```
 
+We may want to use log transformation for population and GDP, since the magnitude of gaps are huge. But for other two, we need more investigation due to the difficulty of interpretation.
 
-```{r, fig.width=7, fig.height=5, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
-c3 <- ggplot(le14, aes(x=percentage.expenditure))+
-  geom_histogram(color="darkblue", fill="lightblue")+
+The box plots and histograms of population and GDP after log transformation:
+
+```{r, fig.width=7, fig.height=4, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+
+# c3 <- ggplot(le14, aes(x=percentage.expenditure))+
+#   geom_histogram(color="darkblue", fill="lightblue")+
+#   labs(#title="Box Plot of Polio for Children Under 3 Years Old",
+#       x = "Expenditure on health as a percentage of Gross Domestic Product per capita(%)")+
+#   theme(plot.title = element_text(size=10),
+#         axis.title = element_text(size=6))
+# c5 <- ggplot(le14, aes(x=HIV.AIDS))+
+#   geom_histogram(color="darkblue", fill="lightblue")+
+#   labs(#title="Box Plot of Polio for Children Under 3 Years Old",
+#       x = "Deaths per 1 000 live births HIV/AIDS (0-4 years)")+
+#   theme(plot.title = element_text(size=10),
+#         axis.title = element_text(size=6))
+c6 <- ggplot(le14, aes(x=log10(GDP)))+
+  geom_boxplot(color="darkblue", fill="lightblue")+
   labs(#title="Box Plot of Polio for Children Under 3 Years Old",
-      x = "Expenditure on health as a percentage of Gross Domestic Product per capita(%)")+
+      x = "ln(Gross Domestic Product per capita (in USD))")+
   theme(plot.title = element_text(size=10),
         axis.title = element_text(size=6))
-c5 <- ggplot(le14, aes(x=HIV.AIDS))+
-  geom_histogram(color="darkblue", fill="lightblue")+
+c7 <- ggplot(le14, aes(x=log10(Population)))+
+  geom_boxplot(color="darkblue", fill="lightblue")+
   labs(#title="Box Plot of Polio for Children Under 3 Years Old",
-      x = "Deaths per 1 000 live births HIV/AIDS (0-4 years)")+
-  theme(plot.title = element_text(size=10),
-        axis.title = element_text(size=6))
-c6 <- ggplot(le14, aes(x=GDP))+
-  geom_histogram(color="darkblue", fill="lightblue")+
-  labs(#title="Box Plot of Polio for Children Under 3 Years Old",
-      x = "Gross Domestic Product per capita (in USD)")+
-  theme(plot.title = element_text(size=10),
-        axis.title = element_text(size=6))
-c7 <- ggplot(le14, aes(x=Population))+
-  geom_histogram(color="darkblue", fill="lightblue")+
-  labs(#title="Box Plot of Polio for Children Under 3 Years Old",
-      x = "Population of the country")+
+      x = "ln(Population of the country)")+
   theme(plot.title = element_text(size=10),
         axis.title = element_text(size=6))
 
-grid.arrange(c3,c5,c6,c7)
+c6_1 <- ggplot(le14, aes(x=log10(GDP)))+
+  geom_histogram(color="darkblue", fill="lightblue")+
+  labs(#title="Box Plot of Polio for Children Under 3 Years Old",
+      x = "ln(Gross Domestic Product per capita (in USD))")+
+  theme(plot.title = element_text(size=10),
+        axis.title = element_text(size=6))
+c7_1 <- ggplot(le14, aes(x=log10(Population)))+
+  geom_histogram(color="darkblue", fill="lightblue")+
+  labs(#title="Box Plot of Polio for Children Under 3 Years Old",
+      x = "ln(Population of the country)")+
+  theme(plot.title = element_text(size=10),
+        axis.title = element_text(size=6))
+
+grid.arrange(c6,c7,c6_1,c7_1,ncol=2)
 ```
 
 
@@ -234,7 +251,7 @@ grid.arrange(c3,c5,c6,c7)
 After selection Model:
 
 ```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-fit2 <- lm(Life.expectancy ~ BMI+log10(GDP)+percentage.expenditure+Polio+HIV.AIDS+Total.expenditure+Population+Income.composition.of.resources+Status+Schooling, data=le14)
+fit2 <- lm(Life.expectancy ~ BMI+log10(GDP)+percentage.expenditure+Polio+HIV.AIDS+Total.expenditure+log10(Population)+Income.composition.of.resources+Status+Schooling, data=le14)
 stargazer(fit2,header=FALSE, type="latex", 
           no.space = TRUE,
           report = ('vcsp*'), single.row = TRUE,
