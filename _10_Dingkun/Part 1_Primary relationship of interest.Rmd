@@ -108,17 +108,19 @@ corrplot(le14_cont_piror.cor, method="color", col=col(200),
 
 **Potential predictor variables:**
 
-- *Percentage Expenditure* or *GDP*
-- *BMI*
-- *Polio*
-- *HIV/AIDS*
-- *Total.expenditure*
-- *Schooling*
-- *Income Composition of Resources*
-- *Country Status (Developed/Developing)*
-- *Population*
+- *Year* (if we are going to do some time-series analysis)
+- *Percentage Expenditure* (Expenditure on health as a percentage of Gross Domestic Product per capita(%)) or *GDP* (Gross Domestic Product per capita (in USD))
+- *BMI* (Average Body Mass Index of entire population)
+- *Polio* (Polio (Pol3) immunization coverage among 1-year-olds (%))
+- *HIV/AIDS* (Deaths per 1,000 live births HIV/AIDS (0-4 years))
+- *Total.expenditure* (General government expenditure on health as a percentage of total government expenditure (%))
+- *Schooling* (Number of years of Schooling(years))
+- *Income Composition of Resources* (Human Development Index in terms of income composition of resources (index ranging from 0 to 1))
+- *Country Status* (Developed/Developing)
+- *Population* (Population of the country)
 
 
+We primarily choose data from year 2014 to answer our research questions, since it is the latest year in the data set with fewer missing values. But we do keep our door open to potential time-series analysis with other 14 years' data (year 2000-2015 in total)
 
 \newpage
 
