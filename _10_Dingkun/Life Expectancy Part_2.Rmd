@@ -75,13 +75,14 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
 
 ### After piror selection:
 
-To represent immunization coverage, it is not wise use all variables when they are highly correlated with each other; among "Hepatitis.B","Polio", "Diphtheria tetanus toxoid and pertussis (DTP3)", we decide to use "polio", since it has the highest correlation between Life Expectancy
+When building a model, it is not wise use all variables when they are highly correlated with each other. To represent immunization coverage, among "Hepatitis.B","Polio", "Diphtheria tetanus toxoid and pertussis (DTP3)", we decide to use "polio", since it has the highest correlation between Life Expectancy. Similarly, we see extremely high correlation between GDP and percentage expenditure, but both of them would have meaningful interpreation, we may want to decide which one goes to our final model when we conduct model selection.
 
 On the one hand, with domain knowledge, we know "Adult.Mortality", "infant.deaths" and "under.five.deaths" variables are directly correlated to Life Expectancy, we choose to drop them from the predictor variable list; on the other hand, we are interested in "HIV.AIDS" variable (Deaths per 1 000 live births HIV/AIDS (0-4 years)
 
 We would like to omit the variables have Low correlation between Life Expectancy: "Measles"; however, we do want to include "population" because of our interest. 
 
 As for categorical variable, we would like to keep country status (developing/developed) as one of the predictors
+
 
 ```{r cor1, fig.width=6, fig.height=5, fig.show='hold', out.width="80%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -104,6 +105,19 @@ corrplot(le14_cont_piror.cor, method="color", col=col(200),
          )
 
 ```
+
+**Potential predictor variables:**
+
+- *Percentage Expenditure* or *GDP*
+- *BMI*
+- *Polio*
+- *HIV/AIDS*
+- *Total.expenditure*
+- *Schooling*
+- *Income Composition of Resources*
+- *Country Status (Developed/Developing)*
+- *Population*
+
 
 
 \newpage
@@ -220,7 +234,7 @@ grid.arrange(c3,c5,c6,c7)
 After selection Model:
 
 ```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-fit2 <- lm(Life.expectancy ~ BMI+GDP+percentage.expenditure+Polio+HIV.AIDS+Total.expenditure+Population+Income.composition.of.resources+Status+Schooling, data=le14)
+fit2 <- lm(Life.expectancy ~ BMI+log10(GDP)+percentage.expenditure+Polio+HIV.AIDS+Total.expenditure+Population+Income.composition.of.resources+Status+Schooling, data=le14)
 stargazer(fit2,header=FALSE, type="latex", 
           no.space = TRUE,
           report = ('vcsp*'), single.row = TRUE,
@@ -234,7 +248,7 @@ plot(fit2)
 Potential Final Model :
 
 ```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-fit2 <- lm(Life.expectancy ~ GDP+percentage.expenditure+HIV.AIDS+Income.composition.of.resources+Status, data=le14)
+fit2 <- lm(Life.expectancy ~ log10(GDP)+HIV.AIDS+Income.composition.of.resources+Status, data=le14)
 stargazer(fit2,header=FALSE, type="latex", 
           no.space = TRUE,
           report = ('vcsp*'), single.row = TRUE,
