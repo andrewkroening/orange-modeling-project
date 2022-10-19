@@ -5,7 +5,7 @@ output: pdf_document
 date: "October 21st, 2022"
 ---
 ```{r introduction_code_blocks, eval=FALSE, echo=FALSE, include=FALSE}
-# add the magic code chunks here
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Data Overview
@@ -29,17 +29,11 @@ The complete dataset contains observations beginning in the year 2000 and ending
 
 #### Sample Dataset Characteristics
 
-For this research proposal, the data set will be truncated to 2014 and reduced to certain variables based on their potential relevance to the research questions. In doing so, the dataset is reduced in  size to 183 observations of the following variables:
+For this research, the data set will be specific to 2014 and reduced to certain variables based on their potential relevance to the research questions (for more information, refer **Appendix A, Table XXXXX**). In doing so, the dataset is reduced in size to 183 observations of the following variables:
  
  > 'Country', 'Status', 'Population', 'Life.expectancy', 'percentage.expenditure', 'Hepatitis.B', 'Measles', 'Polio', ' HIV.AIDS', 'Diphtheria', 'GDP', 'Schooling', 'Income.composition.of.resources'
  
 The research team estimates that these variables will lead to the best model fit for the dual-purpose nature of this analysis.
-
-#### This is where we need to put in plots, or details of some of the justifications for our variables
-
-```{r table_1, echo=FALSE, include=FALSE, eval=FALSE}
-# Table 1 can go here or a little further up if we choose
-```
 
 #### Research Questions:
 
@@ -51,9 +45,15 @@ The research team estimates that these variables will lead to the best model fit
 
 *Present descriptive statistics and exploratory plots in whichever format you think is best (tables, figures) for your primary relationship of interest (dependent and primary independent variables, if applicable). Describe your findings.*
 
+#### This is where we need to put in plots, or details of some of the justifications for our variables
+
+```{r table_1, echo=FALSE, include=FALSE, eval=FALSE}
+# Table 1 can go here or a little further up if we choose
+```
+
 # Other Characteristics
 
-*Briefly describe other variables in the data. If there are many, do not list them all. Instead, describe the types of variables present (e.g., “demographic information”).*
+*Briefly describe other variables in the data. If there are many, do not list them all. Instead, describe the types of variables present (e.g., ???demographic information???).*
 
 # Potential Challenges
 

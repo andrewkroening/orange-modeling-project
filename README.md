@@ -14,4 +14,7 @@
 ### Structure:
 
 * [00_Datasets](https://github.com/andrewkroening/orange-modeling-project/tree/main/_00_Datasets) - This is where the datasets for the project are stored
-* 10_\[name\] - These folders are where individual working files are kept
+* [Workspace](https://github.com/andrewkroening/orange-modeling-project/tree/main/_00_Datasets) - This is where individual analyses can be conducted
+* [Part 1 - EDA] - Final files for EDA
+* [Part 2 - Modeling] - Final files for Modeling
+* [Part 3 - Report] - Final files for Report
