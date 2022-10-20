@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-packages <- (c("table1", "ggplot2", "xtable", "pander", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
+packages <- (c("table1", "ggplot2", "xtable", "pander","ggcorrplot", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
@@ -218,6 +218,37 @@ The primary challenge facing the project is missing data. In the 2014 subset of 
 
 The team has proposed three potential avenues for mitigating the effects of these missing values. The observations in question may be dropped or filled with a mean or median value for that variable based on the observed skew.
 
+```{r plot missing data 1,fig.width=16,fig.height=4,echo=FALSE,fig.show='hold'}
+missing.rows = dim(df_life_expectancy_2014)[1] -  dim(na.omit(df_life_expectancy_2014))[1]
+missings_df <- df_life_expectancy_2014.frame(type=c("missing", "non-missing") ,count = c(missing.rows,  dim(na.omit(df_life_expectancy_2014))[1]))
+
+ggplot(missings_df, aes(fill=type, y="", x=count)) + 
+    geom_bar(position="stack", stat="identity")+
+    ggtitle("Missing vs Non-missing row counts") +
+    xlab("Missing count") + ylab("") +
+    theme(text = element_text(size = 18))+
+    scale_fill_brewer(palette="Set1")
+```
+```{r visualize missing data 2,fig.width=16,fig.height=8,echo=FALSE,fig.show='hold'}
+missing_counts <- df_life_expectancy_2014.frame(feature = factor(names(df_life_expectancy_2014)),
+                    counts=sapply(df_life_expectancy_2014, function(x) sum(is.na(x))))
+
+ggplot(missing_counts,
+       aes(x=reorder(feature, -counts), y=counts, fill=counts)) +
+                                  geom_bar(stat="identity") +
+                                  ggtitle("Missing counts in each feature") +
+                                  xlab("Feature") + ylab("Missing count") +
+                                  theme(axis.text.x=element_text(angle=20, hjust=1))+
+                                  theme(text = element_text(size = 18))+
+                                  scale_fill_continuous(trans = 'reverse')
+```
+**Potential solution**
+The most significant amount of missing values is recorded in population, GDP, Hepatitis B, followed by Total expediture, Achohol, Income.composition.of.resources and Schooling.
+
+* Cosidering 40% of the misiing data, we can apply data imputation by checking outliers in each variable that contains missings using boxplots:
+* for the variables with high outliers will apply imputation with median
+* for the variables with low outliers will apply imputation with mean.
+
 #### Skew
 
 There is a second challenge posed in some of the variables in the dataset by a skewed distribution. When checking box plots of all variables, we found 4 variables may need transformation before inclusion in the final model.
@@ -336,6 +367,20 @@ c7_1 <- ggplot(df_life_expectancy_2014, aes(x=log10(Population)))+
 grid.arrange(c6,c7,c6_1,c7_1,ncol=2)
 ```
 
+```{r skewed data,warning=FALSE,fig.width=8,fig.height=4,echo=FALSE,fig.show='hold',out.width='50%'}
+ggplot(df_life_expectancy_2014, aes(x=Diphtheria)) + 
+    geom_density(alpha=.3, fill="red", color="red", size=1.5)+
+    geom_vline(aes(xintercept=mean(Diphtheria)), size=1)+
+    ggtitle("Distribution density of Diphtheria ") +
+    theme(text = element_text(size = 18))
+ggplot(df_life_expectancy_2014, aes(x=GDP)) + 
+    geom_density(alpha=.3, fill="red", color="red", size=1.5)+
+    geom_vline(aes(xintercept=mean(GDP)), size=1)+
+    ggtitle("Distribution density of GDP ") +
+    theme(text = element_text(size = 18))
+```
+**Potential solution** 
+We can use log transformation on skewed variables. We can also remove outliers or normalize(min-max) our dataset.
 
 \newpage
 # Appendix A - Regression Models
