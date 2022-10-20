@@ -10,6 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r load_libraries, echo=FALSE, include=FALSE}
 library(table1)
+library(ggplot2)
+library(xtable)
+library(stargazer)
+library(pander)
+library(corrplot)
 ```
 
 # Data Overview
@@ -62,22 +67,44 @@ The research team estimates that these variables will lead to the best model fit
 
 *Present descriptive statistics and exploratory plots in whichever format you think is best (tables, figures) for your primary relationship of interest (dependent and primary independent variables, if applicable). Describe your findings.*
 
+After conducting a priori variable selection of the independent variables, below are the findings:
+
+The predictors schooling, adult mortality, BMI, total expenditure, HIV/AIDS, thinness 1-19, thinness 5-9, income composition of resources and status have a high correlation with life expectancy as can be seen from the scatterplot matrix and the boxplot below. In the boxplot, we can see that the mean life expectancy is much lower for developing countries than for developed countries.
+
+From the correlation matrix, we can see that some predictors are highly correlated with each other. One of each correlated predictor pair will be excluded from the analysis / model:
+* infant deaths are highly correlated with under five deaths so only one of these variables will be included
+* percent expenditure is highly correlated with GDP so only one of these variables will be included
+* Hepatitis is highly correlated with Polio and Diphtheria so only one of these variables will be included 
+* BMI is highly correlated with thinness 5-9 and thinness..1.19.years so only one of these variables will be included
+
+Since our research question focuses on the effect of social, economic and major disease factors over life expectancy, we will keep some variables that are of interest regardless of the future model performance. These are schooling, income composition of resources, total expenditure, status, population, hepatitis.b and gdp.
+
+For the rest of the exploratory data analysis, we will only consider these variables.
+
 #### Table One
 
 Due to the size of the grouping variable 'Country', we will plot the Table 1 with one developed and one developing country.
 
 ```{r read_data, echo=FALSE, include=FALSE}
 df_life_expectancy <- read.csv("/Users/poojakabber/Desktop/Subjects/Statistics/orange-modeling-project/Datasets/Life_Expectancy_Data.csv")
-df_life_expectancy <- data.frame(df_life_expectacy)
-df_life_expectancy_2014 <- df_life_expectancy[df_life_expectacy$Year == 2014, ]
+df_life_expectancy <- data.frame(df_life_expectancy)
+df_life_expectancy_2014 <- df_life_expectancy[df_life_expectancy$Year == 2014, ]
+```
 
-df_table_1 <- df_life_expectancy_2014[df_life_expectancy_2014$Country %in% c('Afghanistan','France'),]
+```{r plots, echo=FALSE}
+ggplot(data = df_life_expectancy_2014, aes(x = Life.expectancy, y = Status)) + geom_boxplot() + labs(title = 'Boxplots of Life Expectancy by Status') + ylab("Status") + xlab("Life Expectancy")
+pairs(~Schooling + Adult.Mortality + BMI + Total.expenditure + HIV.AIDS + thinness..1.19.years + thinness.5.9.years + Income.composition.of.resources, data = df_life_expectancy_2014)
+corrplot(cor(df_life_expectancy_2014[c("Life.expectancy", "Adult.Mortality", "infant.deaths", "Alcohol", "percentage.expenditure", "Hepatitis.B", "Measles", "BMI", "under.five.deaths" , "Polio", "Total.expenditure", "Diphtheria", "HIV.AIDS", "GDP", "Population", "thinness..1.19.years", "thinness.5.9.years", "Income.composition.of.resources", "Schooling")], use="pairwise.complete.obs"), method = "color")
 ```
 
 ```{r table_1, echo=FALSE}
-table1(~ factor(Status) + Population + Life.expectancy + percentage.expenditure + Hepatitis.B + Measles + Polio + HIV.AIDS + Diphtheria + GDP + Schooling + Income.composition.of.resources | Country, data = df_table_1, type="pdf")
+# df_table_1 <- df_life_expectancy_2014[df_life_expectancy_2014$Country %in% c('Afghanistan','France'),]
+# table1(~ factor(Status) + Population + Life.expectancy + percentage.expenditure + Hepatitis.B + Measles + Polio + HIV.AIDS + Diphtheria + GDP + Schooling + Income.composition.of.resources | Country, data = df_table_1, type="pdf")
 # Too big - one developed, one developing country
+df_reduced <- df_life_expectancy_2014[c("Schooling","Income.composition.of.resources","Total.expenditure", "Status", "Population", "Hepatitis.B", "GDP")]
+xtable(summary(df_reduced))
 ```
+
 
 # Other Characteristics
 
