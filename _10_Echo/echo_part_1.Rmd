@@ -22,7 +22,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 The publicly available dataset provides data for 193 countries spanning from year 2000 to year 2015 and is structured in **2938 rows** (data points) which are characterized into a total of **22 columns** (features). The features can be categorized into two groups: - Health factors which are originally provided by the Global Health Observatory (GHO) data repository under the World Health Organization (WHO) - Economic factors which have been collected by the United Nation (UN) website.
 
 | Variable                        |  Type   |                                                                                            Description |
-|-------------------------|:----------------:|-----------------------------:|
+|---------------------------------|:-------:|-------------------------------------------------------------------------------------------------------:|
 | Country                         | factor  |                                                                                           Country name |
 | Year                            | numeric |                                                                                       Year of the data |
 | Status                          | factor  |                                                              Country status of developed or developing |
@@ -47,7 +47,7 @@ The publicly available dataset provides data for 193 countries spanning from yea
 | Schooling                       | numeric |                                                                    Number of years of Schooling(years) |
 
 ```{r Initial EDA}
-life <- read.csv(file = 'Life Expectancy Data.csv')
+life <- read.csv(file = '/Users/dp/Downloads/IDS 702/final /orange-modeling-project/_00_Datasets/Life_Expectancy_Data.csv')
 life14 <- life[which(life$Year==2014),] # select year 2014
 life14$Status <-factor(life14$Status)
 life14 <- subset(life14,select = -c(Country,Year,Adult.Mortality,infant.deaths,Alcohol,BMI,under.five.deaths,Total.expenditure,thinness..1.19.years,thinness.5.9.years))# select variables
@@ -91,8 +91,8 @@ ggplot(data ,aes(x= Status,y=Life.expectancy, fill= Status)) +
 *Briefly describe other variables in the data. If there are many, do not list them all. Rather, describe the types of variables that are present (e.g., "demographic information").*
 
 ```{r}
-
-corr <- round(cor(subset(data, select =-c(Status))), 3)
+#life <-subset(life,select = -c(Country, Year))
+corr <- round(cor(subset(life14, select =-c(Status))), 5)
 ggcorrplot(corr,type = "upper", lab = TRUE, outline.color = "black", lab_size = 4, legend.title = "Correlation")+
 ggtitle("Correlation Matrix")
 ```

@@ -1,6 +1,6 @@
 ---
-title: "Life Expectancy Data EDA"
-author: "Team Orange"
+title: "Project Proposal"
+author:"Pooja Kabber, Dingkun Yang, Echo Chen, Andrew Kroening"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---

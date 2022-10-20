@@ -1,12 +1,26 @@
 ---
 title: "Project Proposal"
 author: "Pooja Kabber, Dingkun Yang, Echo Chen, Andrew Kroening"
-output: pdf_document
 date: "October 21st, 2022"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
+```{r setup, include=FALSE}
+library(ggplot2)
+knitr::opts_chunk$set(echo = TRUE)
+packages <- (c("tidyverse","ggcorrplot" ,"stargazer", "ggplot2","corrplot","leaps","car","Metrics","reshape2","ggpubr","moments"))
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
 
+#invisible(lapply(packages, library, character.only = TRUE))
+```
 For part 1, you will conduct exploratory data analysis on your selected dataset. You are required to produce a report of your exploratory data analysis findings in R Markdown. The report should be at most five pages. Tables and figures should be well formatted with clear labels and descriptions. You can organize the report
 as follows
+
 
 # Data Overview
 
@@ -20,6 +34,95 @@ as follows
 
 *Briefly describe other variables in the data. If there are many, do not list them all. Rather, describe the types of variables that are present (e.g., “demographic information”).*
 
-# Potential Challenges
 
+
+# Potential Challenges
 *Describe aspects of the data that may present challenges in the modeling stage. For example, might certain categorical variables need to be collapsed? Is there a lot of missingness? Could the size of the dataset present model selection challenges?*
+
+### Challenge 1
+First challenge is the huge amount of missing data.As we can see, around 44% of the total data is missing, We want to study the characteristics.
+```{r load data,echo=FALSE}
+# change this directory
+data <- read.csv(file = '_00_Datasets/Life_Expectancy_Data.csv')
+```
+```{r ,fig.width=16,fig.height=4,echo=FALSE,fig.show='hold'}
+missing.rows = dim(data)[1] -  dim(na.omit(data))[1]
+#sprintf("Dataset size: [%s]", toString(dim(data)))
+#sprintf("Missing rows: %s (%s%%)", missing.rows, round((missing.rows*100)/dim(data)[1], 2))
+
+missings_df <- data.frame(type=c("missing", "non-missing") ,count = c(missing.rows,  dim(na.omit(data))[1]))
+
+ggplot(missings_df, aes(fill=type, y="", x=count)) + 
+    geom_bar(position="stack", stat="identity")+
+    ggtitle("Missing vs Non-missing row counts") +
+    xlab("Missing count") + ylab("") +
+    theme(text = element_text(size = 18))+
+    scale_fill_brewer(palette="Set1")
+```
+
+```{r visualize missing data,fig.width=16,fig.height=8,echo=FALSE,fig.show='hold'}
+missing_counts <- data.frame(feature = factor(names(data)),
+                    counts=sapply(data, function(x) sum(is.na(x))))
+
+ggplot(missing_counts,
+       aes(x=reorder(feature, -counts), y=counts, fill=counts)) +
+                                  geom_bar(stat="identity") +
+                                  ggtitle("Missing counts in each feature") +
+                                  xlab("Feature") + ylab("Missing count") +
+                                  theme(axis.text.x=element_text(angle=20, hjust=1))+
+                                  theme(text = element_text(size = 18))+
+                                  scale_fill_continuous(trans = 'reverse')
+```
+**Potential solution**
+The most significant amount of missing values is recorded in population, GDP, Hepatitis B, followed by Total expediture, Achohol, Income.composition.of.resources and Schooling.
+
+* Cosidering 40% of the misiing data, we can apply data imputation by checking outliers in each variable that contains missings using boxplots:
+* for the variables with high outliers will apply imputation with median
+* for the variables with low outliers will apply imputation with mean.
+
+### Challenge 2
+When we check the density of different variables. For example, we find diphtheria is left-skewed,and GDP if right-skewed.  
+
+**Potential solution** 
+We can use log transformation on skewed variables. We can also remove outliers or normalize(min-max) our dataset.
+```{r skewed data,warning=FALSE,fig.width=8,fig.height=4,echo=FALSE,fig.show='hold',out.width='50%'}
+ggplot(data, aes(x=Diphtheria)) + 
+    geom_density(alpha=.3, fill="red", color="red", size=1.5)+
+    geom_vline(aes(xintercept=mean(Diphtheria)), size=1)+
+    ggtitle("Distribution density of Diphtheria ") +
+    theme(text = element_text(size = 18))
+ggplot(data, aes(x=GDP)) + 
+    geom_density(alpha=.3, fill="red", color="red", size=1.5)+
+    geom_vline(aes(xintercept=mean(GDP)), size=1)+
+    ggtitle("Distribution density of GDP ") +
+    theme(text = element_text(size = 18))
+```
+
+
+
+# Appendix
+
+| Variable                        |  Type   |                                                                                            Description |
+|--------------|:------------:|--------------------------------------------:|
+| Country                         | factor  |                                                                                           Country name |
+| Year                            | numeric |                                                                                       Year of the data |
+| Status                          | factor  |                                                              Country status of developed or developing |
+| Life_Expectancy                 | numeric |                                                                                 Life expectancy in age |
+| Adult_Mortality                 | numeric | Adult Mortality Rates of both sexes (probability of dying between 15 and 60 years per 1000 population) |
+| infant.deaths                   | numeric |                                                            Number of Infant Deaths per 1000 population |
+| Alcohol                         | numeric |                             Alcohol, recorded per capita (15+) consumption (in litres of pure alcohol) |
+| percentage.expenditure          | numeric |                          Expenditure on health as a percentage of Gross Domestic Product per capita(%) |
+| Hepatitis.B                     | numeric |                                         Hepatitis B (HepB) immunization coverage among 1-year-olds (%) |
+| Measles                         | numeric |                                                           number of reported cases per 1000 population |
+| BMI                             | numeric |                                                           Average Body Mass Index of entire population |
+| under.five.deaths               | numeric |                                                        Number of under-five deaths per 1000 population |
+| Polio                           | numeric |                                               Polio (Pol3) immunization coverage among 1-year-olds (%) |
+| Total.expenditure               | numeric |           General government expenditure on health as a percentage of total government expenditure (%) |
+| Diphtheria                      | numeric |        Diphtheria tetanus toxoid and pertussis (DTP3) immunization coverage among 1-year-olds (%)room) |
+| HIV.AIDS                        | numeric |                                                      Deaths per 1 000 live births HIV/AIDS (0-4 years) |
+| GDP                             | numeric |                                                             Gross Domestic Product per capita (in USD) |
+| Population                      | numeric |                                                                              Population of the country |
+| thinness..1.19.years            | numeric |                            Prevalence of thinness among children and adolescents for Age 10 to 19 (% ) |
+| thinness.5.9.years              | numeric |                                                Prevalence of thinness among children for Age 5 to 9(%) |
+| Income.composition.of.resources | numeric |        Human Development Index in terms of income composition of resources (index ranging from 0 to 1) |
+| Schooling                       | numeric |                                                                    Number of years of Schooling(years) |
