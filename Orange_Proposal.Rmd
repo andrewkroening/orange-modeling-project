@@ -13,7 +13,7 @@ date: "`r Sys.Date()`"
 
 ### Research Question #1
 
-*Research Question #1 will be a prediction question. Our group will explore Life Expectancy in the year 2014 as a function of these possible variables:*
+*Research Question #1 will be a prediction question. We will explore Life Expectancy in the year 2014 as a function of these possible variables:*
 
 * *Percentage Expenditure*
 * *Hepatitis B*
@@ -28,11 +28,11 @@ date: "`r Sys.Date()`"
 * *Population*
 
 
-***The specific question we will be answer is: "How did major disease, economic, and social factors impact life expectancy around the globe in 2014?"***
+***The specific question we will be answering is: "How did major disease, economic, and social factors impact life expectancy around the globe in 2014?"***
 
 
 ### Research Question #2
 
-*Research Question #2 will be inference. Our group will seek to infer a country's category as developed or developing based on the best-fit model.*
+*Research Question #2 will be inference. We will seek to infer a country's category as developed or developing based on the best-fit model.*
 
 ***The specific question we will answer is: "How did disease and mortality rates, along with national economic factors, contribute to a country's development status in 2014?"***
