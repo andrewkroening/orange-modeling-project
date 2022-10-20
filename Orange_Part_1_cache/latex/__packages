@@ -17,3 +17,6 @@ Metrics
 reshape2
 ggpubr
 moments
+ggfortify
+caTools
+gridExtra
