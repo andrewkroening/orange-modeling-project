@@ -131,3 +131,6 @@ dmypy.json
 Datasets/.DS_Store
 .DS_Store
 .DS_Store
+Part 1 - EDA/Orange_Part_1_cache/latex/__packages
+Part 1 - EDA/Orange_Part_1_cache/latex/*
+Part 1 - EDA/Orange_Part_1_files/figure-latex/*
