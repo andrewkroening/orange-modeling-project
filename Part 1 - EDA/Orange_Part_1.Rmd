@@ -4,21 +4,19 @@ author: "Pooja Kabber, Dingkun Yang, Echo Chen, Andrew Kroening"
 output: pdf_document
 date: "October 21st, 2022"
 ---
-```{r introduction_code_blocks, eval=FALSE, echo=FALSE, include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r load_libraries, echo=FALSE, include=FALSE}
-library(table1)
-library(ggplot2)
-library(xtable)
-library(stargazer)
-library(pander)
-library(corrplot)
-library(tidyverse)
-library(ggfortify)
-library(caTools)
-library(gridExtra)
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+packages <- (c("table1", "ggplot2", "xtable", "pander", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
 ```
 
 # Data Overview
@@ -27,7 +25,7 @@ The dataset used for this research is from the World Health Organization (WHO). 
 
 #### Overall Characteristics
 
-The complete dataset contains observations beginning in the year 2000 and ending in the year 2015. As a complete dataset, there are 2,938 observations for 22 variables. In practical terms, each country has approximately one observation, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering major disease, economic, and social factors. All variables are fully described in **Appendix A, Table XXXXX**. Some important variables are called out below:
+The complete dataset contains observations beginning in the year 2000 and ending in the year 2015. As a complete dataset, there are 2,938 observations for 22 variables. In practical terms, each country has approximately one observation, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering major disease, economic, and social factors. All variables are fully described in **Appendix C, Table XXXXX**. Some important variables are called out below:
 
 * Life.expectancy: Continuous variable of the adult mortality rates of both sexes (probability of dying between 15 and 60 years per 1000 population).
 
@@ -430,10 +428,3 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
 | thinness.5.9.years              | numeric |                                                Prevalence of thinness among children for Age 5 to 9(%) |
 | Income.composition.of.resources | numeric |        Human Development Index in terms of income composition of resources (index ranging from 0 to 1) |
 | Schooling                       | numeric |                                                                    Number of years of Schooling(years) |
-
-
-
-
-
-
-
