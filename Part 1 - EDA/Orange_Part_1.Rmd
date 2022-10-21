@@ -25,7 +25,7 @@ The dataset used for this research is from the World Health Organization (WHO). 
 
 #### Overall Characteristics
 
-The complete dataset contains observations beginning in the year 2000 and ending in the year 2015. As a complete dataset, there are 2,938 observations for 22 variables. In practical terms, each country has approximately one observation, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering major disease, economic, and social factors. All variables are fully described in **Appendix C, Table XXXXX**. Some important variables are called out below:
+The complete dataset contains observations beginning in the year 2000 and ending in the year 2015. As a complete dataset, there are 2,938 observations for 22 variables. In practical terms, each country has approximately one observation, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering major disease, economic, and social factors. All variables are fully described in **Appendix B, Table XXXXX**. Some important variables are called out below:
 
 * Life.expectancy: Continuous variable of the adult mortality rates of both sexes (probability of dying between 15 and 60 years per 1000 population).
 
@@ -68,17 +68,21 @@ We conduct a priori variable selection of the independent variables. Below are o
 The predictors Schooling, Adult Mortality, BMI, Total Expenditure, HIV/AIDS, Thinness 1-19, Thinness 5-9, Income composition of resources and Status have a high correlation with Life Expectancy as can be seen from the scatterplot matrix and the boxplot below. From the boxplot, we can see that the mean Life Expectancy is much lower for developing countries than for developed countries.
 
 ```{r read_data, echo=FALSE, include=FALSE}
-df_life_expectancy <- read.csv("/Users/poojakabber/Desktop/Subjects/Statistics/orange-modeling-project/Datasets/Life_Expectancy_Data.csv")
+df_life_expectancy <- read.csv("Life Expectancy Data.csv")
 df_life_expectancy <- data.frame(df_life_expectancy)
 df_life_expectancy$Status <- factor(df_life_expectancy$Status)
 df_life_expectancy_2014 <- df_life_expectancy[df_life_expectancy$Year == 2014, ]
 ```
 
-```{r plots, echo=FALSE}
+```{r boxplot, fig.width=6, fig.height=3, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 ## INCLUDE BOXPLOT HERE
-ggplot(data = df_life_expectancy_2014, aes(x = Life.expectancy, y = Status)) + geom_boxplot() + labs(title = 'Boxplots of Life Expectancy by Status') + ylab("Status") + xlab("Life Expectancy")
-## MULTIPLE SCATTERPLOT HERE
-pairs(~Schooling + Adult.Mortality + BMI + Total.expenditure + HIV.AIDS + thinness..1.19.years + thinness.5.9.years + Income.composition.of.resources, data = df_life_expectancy_2014)
+ggplot(data = df_life_expectancy_2014, aes(x = Life.expectancy, y = Status)) +
+  geom_boxplot(color="darkblue", fill="lightblue") +
+  labs(title = 'Boxplots of Life Expectancy by Status',
+       y = "Status",
+       x = "Life Expectancy") +
+  theme(plot.title = element_text(size=10),
+        axis.title = element_text(size=8))
 ```
 
 From the below correlation matrix, we can see that some predictors are highly correlated with each other:
@@ -91,9 +95,9 @@ From the below correlation matrix, we can see that some predictors are highly co
 
 * BMI is highly correlated with thinness 5-9 and thinness..1.19.years so only BMI will be included.
 
-```{r correlation matrix1, fig.width=8, fig.height=8, fig.show='hold', out.width="90%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+```{r correlation matrix1, fig.width=7, fig.height=4.5, fig.show='hold', out.width="90%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 ## SMALLER CORRELATION MATRIX HERE
-le14_cont <- df_life_expectancy_2014[,c("Life.expectancy", "Adult.Mortality", "infant.deaths","Alcohol","percentage.expenditure", "Hepatitis.B","Measles","BMI","under.five.deaths","Polio","Total.expenditure","Diphtheria" ,"HIV.AIDS","GDP","Population","thinness..1.19.years","thinness.5.9.years","Income.composition.of.resources",
+le14_cont <- df_life_expectancy_2014[,c("Life.expectancy", "BMI","percentage.expenditure", "Polio","Total.expenditure" ,"HIV.AIDS","GDP","Population","Income.composition.of.resources",
 "Schooling")]
 le14_cont_clean <- na.omit(le14_cont)
 le14_cont_clean.cor <- cor(le14_cont_clean)
@@ -107,8 +111,9 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
          # Combine with significance
          # p.mat = p.mat, sig.level = 0.05, insig = "blank", 
          # hide correlation coefficient on the principal diagonal
-     tl.cex=0.7,
-     number.cex=0.7,
+     tl.cex=0.6,
+     tl.srt = 45,
+     number.cex=0.6,
      mar=c(0,0,0,0)
          )
 ```
@@ -118,14 +123,13 @@ Since our research question focuses on the effect of social, economic and major 
 We will only consider these variables for the rest of the analysis. In doing so, the dataset is reduced in  size to 183 observations of the following variables:
  
  > 'Country', 'Status', 'Population', 'Life.expectancy', 'percentage.expenditure', 'Measles', 'Polio', ' HIV.AIDS', 'GDP', 'Schooling', 'Income.composition.of.resources', 'BMI', 'Total.expenditure'
- 
+  
+  
 #### Table One
- 
+  
 Table 1 describes summary information about each of these variables.
 
-From the table we can see some interesting characteristics of the data. Life.expectancy has a standard deviation between countries as high as 8.56 years. There are some countries whose percentage.expenditure is 0, with a mean of 1001 and a max of 19,479 which gives us a sense of the skew in the various countries' spending power. GDP is as low as 12.28. We can also see that variables like Population, Measles and GDP are highly skewed. We will expand on these further in the Challenges section of the analysis. 
-
-```{r table_1, echo=FALSE, results='asis'}
+```{r table_1, , echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 # df_table_1 <- df_life_expectancy_2014[df_life_expectancy_2014$Country %in% c('Afghanistan','France'),]
 # table1(~ factor(Status) + Population + Life.expectancy + percentage.expenditure + Hepatitis.B + Measles + Polio + HIV.AIDS + Diphtheria + GDP + Schooling + Income.composition.of.resources | Country, data = df_table_1, type="pdf")
 # Too big - one developed, one developing country
@@ -137,8 +141,12 @@ stargazer(df_life_expectancy_14_subset,type = "latex", no.space = TRUE,
           title="Summary of Variables")
 ```
 
-# Other Characteristics
 
+From the table we can see some interesting characteristics of the data. Life.expectancy has a standard deviation between countries as high as 8.56 years. There are some countries whose percentage.expenditure is 0, with a mean of 1001 and a max of 19,479 which gives us a sense of the skew in the various countries' spending power. GDP is as low as 12.28. We can also see that variables like Population, Measles and GDP are highly skewed. We will expand on these further in the Challenges section of the analysis. 
+
+  
+# Other Characteristics
+  
 Below is a brief summary of the other types of variables present in the dataset:
 
 * Variables like Status and Population represent the social dimensions of the data collected.
@@ -152,7 +160,8 @@ Below is a brief summary of the other types of variables present in the dataset:
 # Potential Challenges
 
 #### Missingness
-
+  
+\
 The primary challenge facing the project is missing data. In the 2014 subset of the Life Expectancy dataset, there are 51 observations with a missing value in at least one of the potential predictors:
 
 * 41x 'Population' observations 
@@ -168,60 +177,10 @@ The primary challenge facing the project is missing data. In the 2014 subset of 
 The team has proposed three potential avenues for mitigating the effects of these missing values. The observations in question may be dropped or filled with a mean or median value for that variable based on the observed skew.
 
 #### Skew
-
+  
+\
 There is a second challenge posed in some of the variables in the dataset by a skewed distribution. When checking box plots of all variables, we found 4 variables may need transformation before inclusion in the final model.
 
-```{r histograms, echo=FALSE, results='asis'}
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
-
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-
-  numPlots = length(plots)
-
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                    ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-
- if (numPlots==1) {
-    print(plots[[1]])
-
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
-myplots <- list()  # new empty list
-
-le14_cont_clean_subset <- le14_cont_clean[,c("Life.expectancy", "percentage.expenditure","Measles","BMI","Polio","Total.expenditure" ,"HIV.AIDS","GDP","Population","Income.composition.of.resources", "Schooling")]
-
-for(i in 1:ncol(le14_cont_clean_subset)){
-  col <- names(le14_cont_clean_subset)[i]
-  ggp <- ggplot(le14_cont_clean_subset, aes_string(x = col)) +
-    geom_histogram(bins = 30, fill = "cornflowerblue", color = "black") +
-    geom_vline(xintercept = mean(le14_cont_clean_subset[[col]]), col = "red", lwd=1.5) 
-  myplots[[i]] <- ggp  # add each plot into plot list
-}
-
-multiplot(plotlist = myplots, cols = 3)
-
-```
 
 ```{r, fig.width=7, fig.height=5, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 ## If interested, Comment out to see whats going on ##
@@ -337,60 +296,34 @@ c7_1 <- ggplot(df_life_expectancy_2014, aes(x=log10(Population)))+
 grid.arrange(c6,c7,c6_1,c7_1,ncol=2)
 ```
 
-```{r skewed data,warning=FALSE,fig.width=8,fig.height=4,echo=FALSE,fig.show='hold',out.width='50%'}
-ggplot(df_life_expectancy_2014, aes(x=Diphtheria)) + 
-    geom_density(alpha=.3, fill="red", color="red", size=1.5)+
-    geom_vline(aes(xintercept=mean(Diphtheria)), size=1)+
-    ggtitle("Distribution density of Diphtheria ") +
-    theme(text = element_text(size = 18))
-ggplot(df_life_expectancy_2014, aes(x=GDP)) + 
-    geom_density(alpha=.3, fill="red", color="red", size=1.5)+
-    geom_vline(aes(xintercept=mean(GDP)), size=1)+
-    ggtitle("Distribution density of GDP ") +
-    theme(text = element_text(size = 18))
+```{r skewed data,warning=FALSE,fig.width=8,fig.height=4,echo=FALSE,fig.show='hold',out.width='50%', include=FALSE, echo=FALSE}
+##### They are essentially same things as plots above ####
+
+# ggplot(df_life_expectancy_2014, aes(x=Diphtheria)) + 
+#     geom_density(alpha=.3, fill="red", color="red", size=1.5)+
+#     geom_vline(aes(xintercept=mean(Diphtheria)), size=1)+
+#     ggtitle("Distribution density of Diphtheria ") +
+#     theme(text = element_text(size = 18))
+# ggplot(df_life_expectancy_2014, aes(x=GDP)) + 
+#     geom_density(alpha=.3, fill="red", color="red", size=1.5)+
+#     geom_vline(aes(xintercept=mean(GDP)), size=1)+
+#     ggtitle("Distribution density of GDP ") +
+#     theme(text = element_text(size = 18))
 ```
-**Potential solution** 
-We can use log transformation on skewed variables. We can also remove outliers or normalize(min-max) our dataset.
-
-\newpage
-# Appendix A - Regression Models
-
-After selection Model:
-
-```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-fit2 <- lm(Life.expectancy ~ BMI+log10(GDP)+percentage.expenditure+Polio+HIV.AIDS+Total.expenditure+log10(Population)+Income.composition.of.resources+Status+Schooling, data=df_life_expectancy_2014)
-stargazer(fit2,header=FALSE, type="latex", 
-          no.space = TRUE,
-          report = ('vcsp*'), single.row = TRUE,
-          column.sep.width = "0.2pt",
-          font.size = "small",
-          title="Regression Summary")
-par(mfrow = c(2, 2))
-plot(fit2)
-```
-\newpage
-Potential Final Model :
-
-```{r, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
-fit2 <- lm(Life.expectancy ~ log10(GDP)+HIV.AIDS+Income.composition.of.resources+Status, data=df_life_expectancy_2014)
-stargazer(fit2,header=FALSE, type="latex", 
-          no.space = TRUE,
-          report = ('vcsp*'), single.row = TRUE,
-          column.sep.width = "0.2pt",
-          font.size = "small",
-          title="Regression Summary")
-par(mfrow = c(2, 2))
-plot(fit2)
-```
+**Potential solution**
+  
+\
+We may use log transformation on skewed variables as described above. We can also remove outliers or normalize(min-max) our dataset.
 
 
 \newpage
-# Appendix B - Supporting Tables and Figures
+# Appendix A - Supporting Tables and Figures
 
 #### This appendix is for primary supporting information, tables, or plots that are *valuable for the model that we are keeping*.
 
 #### "Figure XX - Correlation Matrix" 
-```{r correlation matrix, fig.width=8, fig.height=8, fig.show='hold', out.width="90%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+
+```{r correlation matrix, fig.width=12, fig.height=12, fig.show='hold', fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 le14_cont <- df_life_expectancy_2014[,c("Life.expectancy", "Adult.Mortality", "infant.deaths","Alcohol","percentage.expenditure", "Hepatitis.B","Measles","BMI","under.five.deaths","Polio","Total.expenditure","Diphtheria" ,"HIV.AIDS","GDP","Population","thinness..1.19.years","thinness.5.9.years","Income.composition.of.resources",
 "Schooling")]
 le14_cont_clean <- na.omit(le14_cont)
@@ -405,8 +338,9 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
          # Combine with significance
          # p.mat = p.mat, sig.level = 0.05, insig = "blank", 
          # hide correlation coefficient on the principal diagonal
-     tl.cex=0.7,
-     number.cex=0.7,
+     tl.cex=0.8,
+     tl.srt = 45,
+     number.cex=0.8,
      mar=c(0,0,0,0)
          )
 ```
@@ -414,7 +348,65 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
 
 
 \newpage
-# Appendix C - Variables Description
+#### "Figure XXX - Histgrams for Potential Predictor Variables" 
+\
+\
+```{r histograms, echo=FALSE, results='asis'}
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+myplots <- list()  # new empty list
+
+le14_cont_clean_subset <- le14_cont_clean[,c("Life.expectancy", "percentage.expenditure","Measles","BMI","Polio","Total.expenditure" ,"HIV.AIDS","GDP","Population","Income.composition.of.resources", "Schooling")]
+
+for(i in 1:ncol(le14_cont_clean_subset)){
+  col <- names(le14_cont_clean_subset)[i]
+  ggp <- ggplot(le14_cont_clean_subset, aes_string(x = col)) +
+    geom_histogram(bins = 30, fill = "lightblue", color = "darkblue") +
+    labs(y = "Frequency")+
+    geom_vline(xintercept = mean(le14_cont_clean_subset[[col]]), col = "red", lwd=1.5) 
+  myplots[[i]] <- ggp  # add each plot into plot list
+}
+
+multiplot(plotlist = myplots, cols = 3)
+
+```
+
+\newpage
+
+# Appendix B - Variables Description
 
 #### This appendix is for other information, tables, or plots that are less valuable to the models or will be removed.
 
