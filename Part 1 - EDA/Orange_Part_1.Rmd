@@ -250,7 +250,8 @@ c7 <- ggplot(df_life_expectancy_2014, aes(x=Population))+
 
 grid.arrange(c3,c5,c6,c7)
 ```
-
+**Potential solution**
+  
 We may want to use log transformation for population and GDP, because of the magnitude of gaps. But for other two, we need more investigation due to the difficulty of interpretation. The box plots and histograms of the population and GDP variables after log transformation yield a better distribution:
 
 ```{r, fig.width=7, fig.height=4, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
@@ -310,10 +311,6 @@ grid.arrange(c6,c7,c6_1,c7_1,ncol=2)
 #     ggtitle("Distribution density of GDP ") +
 #     theme(text = element_text(size = 18))
 ```
-**Potential solution**
-  
-\
-We may use log transformation on skewed variables as described above. We can also remove outliers or normalize(min-max) our dataset.
 
 
 \newpage
