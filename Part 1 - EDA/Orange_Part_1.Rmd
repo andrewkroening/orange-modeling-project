@@ -25,9 +25,9 @@ The dataset used for this research is from the World Health Organization (WHO). 
 
 #### Overall Characteristics
 
-The complete dataset contains observations beginning in the year 2000 and ending in the year 2015. As a complete dataset, there are 2,938 observations for 22 variables. In practical terms, each country has approximately one observation, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering major disease, economic, and social factors. All variables are fully described in **Appendix B, Table XXXXX**. Some important variables are called out below:
+The complete dataset contains observations beginning in the year 2000 and ending in the year 2015. As a full dataset, there are 2,938 observations for 22 variables. Practically, each country has approximately one observation, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering significant disease, economic, and social factors. All variables are fully described in Appendix C, Table 2. Some critical variables are called out below:
 
-* Life.expectancy: Continuous variable of the adult mortality rates of both sexes (probability of dying between 15 and 60 years per 1000 population).
+* Life.expectancy: Continuous variable of the adult mortality rate of both sexes (probability of dying between 15 and 60 years per 1000 population).
 
 * Status: Categorical variable identifies a country as 'Developing' or 'Developed' in the given year.
 
@@ -43,60 +43,65 @@ The complete dataset contains observations beginning in the year 2000 and ending
 
 * Polio: Polio immunization coverage among 1-year-olds (%).
 
-* HIV.AIDS: Continuous variable of the deaths per 1,000 live births due to HIV/AIDS for 0-4 year olds.
+* HIV.AIDS: Continuous variable of the deaths per 1,000 live births due to HIV/AIDS for 0-4-year-olds.
 
 * Diphtheria: Diphtheria tetanus toxoid and pertussis (DTP3) immunization coverage among 1-year-olds (%).
 
-* Schooling: Continuous variable expressing the average number of years of school completed among the country's population.
+* Schooling: Continuous variable expressing the average number of school years completed among the country's population.
 
 * Income.composition.of.resources: Human Development Index in terms of income composition of resources (index ranging from 0 to 1).
 
 #### Sample Dataset Characteristics
 
-In the context of this analysis, the dataset will be reduced to include only the year 2014. This yields once observation for 183 countries across all of the variables.
+In the context of this analysis, the dataset will be reduced to include only the year 2014. This yields one observation for 183 countries across all of the variables.
 
 #### Research Questions:
 
 * How did major disease, economic, and social factors impact life expectancy around the globe in 2014?"
 
-* How did disease and mortality rates, along with national economic factors, contribute to a country's development status in 2014?
+* How did disease and mortality rates and national economic factors contribute to a country's development status in 2014?
 
 # Primary Relationship of Interest
 
-We conduct a priori variable selection of the independent variables. Below are our findings:
+We conducted an *a priori* variable selection of the independent variables. Below are our findings:
 
-The predictors Schooling, Adult Mortality, BMI, Total Expenditure, HIV/AIDS, Thinness 1-19, Thinness 5-9, Income composition of resources and Status have a high correlation with Life Expectancy as can be seen from the scatterplot matrix and the boxplot below. From the boxplot, we can see that the mean Life Expectancy is much lower for developing countries than for developed countries.
+The predictors 'Schooling', 'Adult.Mortality', 'BMI', 'Total.expenditure', 'HIV/AIDS', 'Thinness 1-19', 'Thinness 5-9', 'Income.composition.of.resources', and 'Status' have a high correlation with Life Expectancy ('Life.expectancy') as represented in the full correlation matrix found in Appendix A, Figure 5. From the boxplot below (Figure 1), we can see that the mean Life Expectancy is much lower for developing countries than for developed countries.
 
 ```{r read_data, echo=FALSE, include=FALSE}
-df_life_expectancy <- read.csv("Life Expectancy Data.csv")
+df_life_expectancy <- read.csv("/Users/andrewkroening/Desktop/orange-modeling-project/Datasets/Life_Expectancy_Data.csv")
 df_life_expectancy <- data.frame(df_life_expectancy)
 df_life_expectancy$Status <- factor(df_life_expectancy$Status)
 df_life_expectancy_2014 <- df_life_expectancy[df_life_expectancy$Year == 2014, ]
 ```
 
+> ***Figure 1: Boxplots of Life Expectancy by Status***
 ```{r boxplot, fig.width=6, fig.height=3, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 ## INCLUDE BOXPLOT HERE
 ggplot(data = df_life_expectancy_2014, aes(x = Life.expectancy, y = Status)) +
   geom_boxplot(color="darkblue", fill="lightblue") +
-  labs(title = 'Boxplots of Life Expectancy by Status',
+  labs(#title = 'Figure 1: Boxplots of Life Expectancy by Status',
        y = "Status",
        x = "Life Expectancy") +
   theme(plot.title = element_text(size=10),
         axis.title = element_text(size=8))
 ```
 
-From the below correlation matrix, we can see that some predictors are highly correlated with each other:
+From the below correlation matrix (Figure 2), we can see that some predictors are highly correlated with each other:
 
-* "Adult.Mortality", "infant.deaths" and "under.five.deaths" variables are directly correlated to Life Expectancy, we choose to drop them from the predictor variable list; on the other hand, we are interested in the "HIV.AIDS" variable (Deaths per 1,000 live births HIV/AIDS (0-4 years). The rationale for this decision is that the mortality and death variables are measuring the fatalities of entire groups of the population, whereas the "HIV.AIDS" variable is a single measurement that might encompass several underlying societal indicators.
+* 'Adult.Mortality', 'infant.deaths', and 'under.five.deaths' variables are directly correlated to Life Expectancy. Despite this, we elected to drop them from the predictor variable list. On the other hand, we are interested in the 'HIV.AIDS' variable (Deaths per 1,000 live births HIV/AIDS (0-4 years). The rationale for this decision is that the mortality and death variables measure the fatalities of entire population groups, whereas the 'HIV.AIDS' variable is a single measurement that might encompass several underlying societal indicators.
 
-* We see extremely high correlation between GDP and percentage expenditure. However, since both of them could have meaningful interpretations and the categories are distinct, we may want to decide which one goes to our final model when we conduct model selection.
+* We see an incredibly high correlation between 'GDP' and 'percentage.expenditure'. However, since both could have meaningful interpretations and the categories are distinct, we may want to decide which one goes to our final model when we conduct model selection.
 
-* To represent immunization coverage, among "Hepatitis.B","Polio", "Diphtheria tetanus toxoid and pertussis (DTP3)", we opted to use "polio", since it has the highest correlation with Life Expectancy.
+* To represent immunization coverage, among 'Hepatitis.B', 'Polio', 'Diphtheria tetanus toxoid and pertussis (DTP3)', we opted to use 'polio' since it has the highest correlation with Life Expectancy.
 
-* BMI is highly correlated with thinness 5-9 and thinness..1.19.years so only BMI will be included.
+* 'BMI' is highly correlated with 'thinness 5-9' and 'thinness..1.19.years', so only 'BMI' will be included.
+
+\newpage
+> ***Figure 2: Reduced Correlation Matrix***
 
 ```{r correlation matrix1, fig.width=7, fig.height=4.5, fig.show='hold', out.width="90%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-## SMALLER CORRELATION MATRIX HERE
+
+# SMALLER CORRELATION MATRIX HERE
 le14_cont <- df_life_expectancy_2014[,c("Life.expectancy", "BMI","percentage.expenditure", "Polio","Total.expenditure" ,"HIV.AIDS","GDP","Population","Income.composition.of.resources",
 "Schooling")]
 le14_cont_clean <- na.omit(le14_cont)
@@ -106,7 +111,7 @@ col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA")
 corrplot(le14_cont_clean.cor, method="color", col=col(200),  
      diag=FALSE, # tl.pos="d", 
          type="upper", order="hclust", 
-     # title=title, 
+     #title = "Figure 2: Reduced Correlation Matrix", 
          addCoef.col = "black", # Add coefficient of correlation
          # Combine with significance
          # p.mat = p.mat, sig.level = 0.05, insig = "blank", 
@@ -118,17 +123,16 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
          )
 ```
 
-Since our research question focuses on the effect of social, economic and major disease factors over life expectancy, we will keep some variables that are of interest regardless of the future model performance. These are schooling, income composition of resources, total expenditure, status, population and gdp.
-
-We will only consider these variables for the rest of the analysis. In doing so, the dataset is reduced in  size to 183 observations of the following variables:
+Since our research question focuses on the effect of social, economic, and major disease factors on life expectancy, we will keep some variables that are of interest regardless of the future model performance. These are 'Schooling', 'Income.composition.of.resources', 'Total.expenditure', 'Status', 'Population', and 'GDP'. We will only consider these variables for the rest of the analysis. In doing so, the dataset is reduced in  size to 183 observations of the following variables:
  
  > 'Country', 'Status', 'Population', 'Life.expectancy', 'percentage.expenditure', 'Measles', 'Polio', ' HIV.AIDS', 'GDP', 'Schooling', 'Income.composition.of.resources', 'BMI', 'Total.expenditure'
-  
-  
-#### Table One
-  
-Table 1 describes summary information about each of these variables.
 
+
+#### Variable Summary 
+
+Table 1 (next page) describes a summary of information about each of these variables. From the table, we can see some interesting characteristics of the data. 'Life.expectancy' has a standard deviation between countries as high as 8.56 years. There are some countries whose 'percentage.expenditure' is 0, with a mean of 1001 and a max of 19,479, which gives us a sense of the skew in the various countries' spending power. 'GDP' is as low as 12.28. We can also see that variables like 'Population', 'Measles', and 'GDP' are highly skewed, as seen in the suspiciously low minimum 'Population' value. We will expand on these further in the Challenges section of the analysis. 
+
+\newpage
 ```{r table_1, , echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 # df_table_1 <- df_life_expectancy_2014[df_life_expectancy_2014$Country %in% c('Afghanistan','France'),]
 # table1(~ factor(Status) + Population + Life.expectancy + percentage.expenditure + Hepatitis.B + Measles + Polio + HIV.AIDS + Diphtheria + GDP + Schooling + Income.composition.of.resources | Country, data = df_table_1, type="pdf")
@@ -140,22 +144,18 @@ stargazer(df_life_expectancy_14_subset,type = "latex", no.space = TRUE,
           font.size = "small",
           title="Summary of Variables")
 ```
-
-
-From the table we can see some interesting characteristics of the data. Life.expectancy has a standard deviation between countries as high as 8.56 years. There are some countries whose percentage.expenditure is 0, with a mean of 1001 and a max of 19,479 which gives us a sense of the skew in the various countries' spending power. GDP is as low as 12.28. We can also see that variables like Population, Measles and GDP are highly skewed. We will expand on these further in the Challenges section of the analysis. 
-
   
 # Other Characteristics
   
-Below is a brief summary of the other types of variables present in the dataset:
+Below is a summary of the other types of variables present in the dataset:
 
-* Variables like Status and Population represent the social dimensions of the data collected.
+* Variables like 'Status' and 'Population' represent the social dimensions of the data collected.
 
-* Adult.Mortality, infant.deaths and under.five.deaths represent the different kinds of rates that are consolidated into Life.expectancy.
+* 'Adult.Mortality', 'infant.deaths' and 'under.five.deaths' represent the different kinds of rates that are consolidated into 'Life.expectancy'.
 
-* percentage.expenditure, GDP and Income.composition.of.resources give us a sense of the economic well-being of different countries.
+* 'percentage.expenditure', 'GDP' and 'Income.composition.of.resources' give us a sense of the economic well-being of different countries.
 
-* We can analyse the effect of major diseases using the variables Hepatitis.B, Measles, Polio, HIV.AIDS and Diphtheria and lifestyles of people using Alcohol and BMI.
+* We can analyze the effect of significant diseases using the variables 'Hepatitis.B', 'Measles', 'Polio', 'HIV.AIDS' and 'Diphtheria' and lifestyles of people using Alcohol and BMI.
 
 # Potential Challenges
 
@@ -175,12 +175,13 @@ The primary challenge facing the project is missing data. In the 2014 subset of 
 
 The team has proposed three potential avenues for mitigating the effects of these missing values. The observations in question may be dropped or filled with a mean or median value for that variable based on the observed skew.
   
-\
-\
+
 **Skew**
   
-There is a second challenge posed in some of the variables in the dataset by a skewed distribution. When checking boxplots of all variables, we found 4 variables may need transformation before inclusion in the final model.
+A second challenge is posed in some of the variables in the dataset by a skewed distribution. When inspecting boxplots of all variables (Appendix B, Table 6, and Figure 3, below), we found four variables that may need transformation before inclusion in the final model. 
 
+\newpage
+> ***Figure 3: Boxplots of Select Variables***
 
 ```{r, fig.width=7, fig.height=5, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 ## If interested, Comment out to see whats going on ##
@@ -250,9 +251,11 @@ c7 <- ggplot(df_life_expectancy_2014, aes(x=Population))+
 
 grid.arrange(c3,c5,c6,c7)
 ```
-**Potential solution**
+**Potential Solution**
   
-We may want to use log transformation for population and GDP, because of the magnitude of gaps. But for other two, we need more investigation due to the difficulty of interpretation. The boxplots and histograms of the population and GDP variables after log transformation yield a better distribution:
+A log transformation may be necessary for 'population' and 'GDP', because of the magnitude of the gaps. For the other two, we need more investigation due to the difficulty of interpretation. The boxplots and histograms of the population and GDP variables after log transformation yields a better distribution (Figure 4):
+
+> ***Figure 4: Log Transformations of 'GDP' and 'Population'***
 
 ```{r, fig.width=7, fig.height=4, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
@@ -314,11 +317,9 @@ grid.arrange(c6,c7,c6_1,c7_1,ncol=2)
 
 
 \newpage
-# Appendix A - Supporting Tables and Figures
+# Appendix A
 
-#### This appendix is for primary supporting information, tables, or plots that are *valuable for the model that we are keeping*.
-
-#### "Figure XX - Correlation Matrix" 
+> ***Figure 5: Correlation Matrix***
 
 ```{r correlation matrix, fig.width=12, fig.height=12, fig.show='hold', fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 le14_cont <- df_life_expectancy_2014[,c("Life.expectancy", "Adult.Mortality", "infant.deaths","Alcohol","percentage.expenditure", "Hepatitis.B","Measles","BMI","under.five.deaths","Polio","Total.expenditure","Diphtheria" ,"HIV.AIDS","GDP","Population","thinness..1.19.years","thinness.5.9.years","Income.composition.of.resources",
@@ -345,9 +346,10 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
 
 
 \newpage
-#### "Figure XXX - Histgrams for Potential Predictor Variables" 
-\
-\
+# Appendix B
+
+> ***Figure 6: Histograms of Interest***
+
 ```{r histograms, fig.width=12, fig.height=12, fig.show='hold', fig.align='center', echo=FALSE, results='asis'}
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   library(grid)
@@ -403,11 +405,10 @@ multiplot(plotlist = myplots, cols = 3)
 
 \newpage
 
-# Appendix B - Variables Description
+# Appendix C
 
-#### This appendix is for other information, tables, or plots that are less valuable to the models or will be removed.
+> ***Table 2: Description of Variables***
 
-#### Table XXXX - All Variables
 | Variable                        |  Type   |                                                                                            Description |
 |-------------------------|:----------------:|-----------------------------:|
 | Country                         | factor  |                                                                                           Country name |
