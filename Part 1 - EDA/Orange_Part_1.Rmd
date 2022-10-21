@@ -9,14 +9,26 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-packages <- (c("table1", "ggplot2", "xtable", "pander", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
+# packages <- (c("table1", "ggplot2", "xtable", "pander", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
+# # Install packages not yet installed
+# installed_packages <- packages %in% rownames(installed.packages())
+# if (any(installed_packages == FALSE)) {
+#   install.packages(packages[!installed_packages])
+# }
+# # Packages loading
+# invisible(lapply(packages, library, character.only = TRUE))
+
+library(table1)
+library(ggplot2)
+library(xtable)
+library(stargazer)
+library(pander)
+library(corrplot)
+library(tidyverse)
+library(ggfortify)
+library(caTools)
+library(gridExtra)
+
 ```
 
 # Data Overview
@@ -63,9 +75,9 @@ In the context of this analysis, the dataset will be reduced to include only the
 
 # Primary Relationship of Interest
 
-After conducting a priori variable selection of the independent variables, below are the findings:
+We conduct a priori variable selection of the independent variables. Below are our findings:
 
-The predictors schooling, adult mortality, BMI, total expenditure, HIV/AIDS, thinness 1-19, thinness 5-9, income composition of resources and status have a high correlation with life expectancy as can be seen from the scatterplot matrix and the boxplot below. In the boxplot, we can see that the mean life expectancy is much lower for developing countries than for developed countries.
+The predictors Schooling, Adult Mortality, BMI, Total Expenditure, HIV/AIDS, Thinness 1-19, Thinness 5-9, Income composition of resources and Status have a high correlation with Life Expectancy as can be seen from the scatterplot matrix and the boxplot below. From the boxplot, we can see that the mean Life Expectancy is much lower for developing countries than for developed countries.
 
 ```{r read_data, echo=FALSE, include=FALSE}
 df_life_expectancy <- read.csv("/Users/poojakabber/Desktop/Subjects/Statistics/orange-modeling-project/Datasets/Life_Expectancy_Data.csv")
@@ -75,11 +87,13 @@ df_life_expectancy_2014 <- df_life_expectancy[df_life_expectancy$Year == 2014, ]
 ```
 
 ```{r plots, echo=FALSE}
+## INCLUDE BOXPLOT HERE
 ggplot(data = df_life_expectancy_2014, aes(x = Life.expectancy, y = Status)) + geom_boxplot() + labs(title = 'Boxplots of Life Expectancy by Status') + ylab("Status") + xlab("Life Expectancy")
+## MULTIPLE SCATTERPLOT HERE
 pairs(~Schooling + Adult.Mortality + BMI + Total.expenditure + HIV.AIDS + thinness..1.19.years + thinness.5.9.years + Income.composition.of.resources, data = df_life_expectancy_2014)
 ```
 
-From the correlation matrix, we can see that some predictors are highly correlated with each other:
+From the below correlation matrix, we can see that some predictors are highly correlated with each other:
 
 * "Adult.Mortality", "infant.deaths" and "under.five.deaths" variables are directly correlated to Life Expectancy, we choose to drop them from the predictor variable list; on the other hand, we are interested in the "HIV.AIDS" variable (Deaths per 1,000 live births HIV/AIDS (0-4 years). The rationale for this decision is that the mortality and death variables are measuring the fatalities of entire groups of the population, whereas the "HIV.AIDS" variable is a single measurement that might encompass several underlying societal indicators.
 
@@ -90,6 +104,7 @@ From the correlation matrix, we can see that some predictors are highly correlat
 * BMI is highly correlated with thinness 5-9 and thinness..1.19.years so only BMI will be included.
 
 ```{r correlation matrix1, fig.width=8, fig.height=8, fig.show='hold', out.width="90%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+## SMALLER CORRELATION MATRIX HERE
 le14_cont <- df_life_expectancy_2014[,c("Life.expectancy", "Adult.Mortality", "infant.deaths","Alcohol","percentage.expenditure", "Hepatitis.B","Measles","BMI","under.five.deaths","Polio","Total.expenditure","Diphtheria" ,"HIV.AIDS","GDP","Population","thinness..1.19.years","thinness.5.9.years","Income.composition.of.resources",
 "Schooling")]
 le14_cont_clean <- na.omit(le14_cont)
@@ -116,7 +131,57 @@ We will only consider these variables for the rest of the analysis. In doing so,
  
  > 'Country', 'Status', 'Population', 'Life.expectancy', 'percentage.expenditure', 'Measles', 'Polio', ' HIV.AIDS', 'GDP', 'Schooling', 'Income.composition.of.resources', 'BMI', 'Total.expenditure'
  
-# We should do normal distribution checking here 
+#### Table One
+ 
+Table 1 describes summary information about each of these variables.
+
+From the table we can see some interesting characteristics of the data. Life.expectancy has a standard deviation between countries as high as 8.56 years. There are some countries whose percentage.expenditure is 0, with a mean of 1001 and a max of 19,479 which gives us a sense of the skew in the various countries' spending power. GDP is as low as 12.28. We can also see that variables like Population, Measles and GDP are highly skewed. We will expand on these further in the Challenges section of the analysis. 
+
+```{r table_1, echo=FALSE, results='asis'}
+# df_table_1 <- df_life_expectancy_2014[df_life_expectancy_2014$Country %in% c('Afghanistan','France'),]
+# table1(~ factor(Status) + Population + Life.expectancy + percentage.expenditure + Hepatitis.B + Measles + Polio + HIV.AIDS + Diphtheria + GDP + Schooling + Income.composition.of.resources | Country, data = df_table_1, type="pdf")
+# Too big - one developed, one developing country
+df_life_expectancy_14_subset <- subset(df_life_expectancy_2014,select = c(Status, Population, Life.expectancy, percentage.expenditure, Measles, Polio, HIV.AIDS, GDP, Schooling, Income.composition.of.resources, BMI, Total.expenditure))# select variables
+stargazer(df_life_expectancy_14_subset,type = "latex", no.space = TRUE,
+          report = ('vcsp*'), single.row = TRUE, header = FALSE,
+          column.sep.width = "0.2pt",
+          font.size = "small",
+          title="Summary of Variables")
+```
+
+# Other Characteristics
+
+Below is a brief summary of the other types of variables present in the dataset:
+
+* Variables like Status and Population represent the social dimensions of the data collected.
+
+* Adult.Mortality, infant.deaths and under.five.deaths represent the different kinds of rates that are consolidated into Life.expectancy.
+
+* percentage.expenditure, GDP and Income.composition.of.resources give us a sense of the economic well-being of different countries.
+
+* We can analyse the effect of major diseases using the variables Hepatitis.B, Measles, Polio, HIV.AIDS and Diphtheria and lifestyles of people using Alcohol and BMI.
+
+# Potential Challenges
+
+#### Missingness
+
+The primary challenge facing the project is missing data. In the 2014 subset of the Life Expectancy dataset, there are 51 observations with a missing value in at least one of the potential predictors:
+
+* 41x 'Population' observations 
+
+* 10x 'Hep.B' observations
+
+* 28x 'GDP' observations
+
+* 10x 'Schooling' observations
+
+* 10x 'Income.composition.of.resources' observations
+
+The team has proposed three potential avenues for mitigating the effects of these missing values. The observations in question may be dropped or filled with a mean or median value for that variable based on the observed skew.
+
+#### Skew
+
+There is a second challenge posed in some of the variables in the dataset by a skewed distribution. When checking box plots of all variables, we found 4 variables may need transformation before inclusion in the final model.
 
 ```{r histograms, echo=FALSE, results='asis'}
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
@@ -169,58 +234,6 @@ for(i in 1:ncol(le14_cont_clean_subset)){
 multiplot(plotlist = myplots, cols = 3)
 
 ```
-
-#### Table One
- 
-Table 1 describes summary information about each of these variables.
-
-From the table we can see some interesting characteristics of the data. Life.expectancy has a standard deviation between countries as high as 8.56 years. There are some countries whose percentage.expenditure is 0, with a mean of 1001 and a max of 19,479 which gives us a sense of the skew in the various countries spending power.GDP is as low as 12.28. We can also see that other variables like Population, Measles and GDP are highly skewed. We will expand on these further in the Challenges section of the analysis. 
-
-```{r table_1, echo=FALSE, results='asis'}
-# df_table_1 <- df_life_expectancy_2014[df_life_expectancy_2014$Country %in% c('Afghanistan','France'),]
-# table1(~ factor(Status) + Population + Life.expectancy + percentage.expenditure + Hepatitis.B + Measles + Polio + HIV.AIDS + Diphtheria + GDP + Schooling + Income.composition.of.resources | Country, data = df_table_1, type="pdf")
-# Too big - one developed, one developing country
-df_life_expectancy_14_subset <- subset(df_life_expectancy_2014,select = c(Status, Population, Life.expectancy, percentage.expenditure, Measles, Polio, HIV.AIDS, GDP, Schooling, Income.composition.of.resources, BMI, Total.expenditure))# select variables
-stargazer(df_life_expectancy_14_subset,type = "latex", no.space = TRUE,
-          report = ('vcsp*'), single.row = TRUE, header = FALSE,
-          column.sep.width = "0.2pt",
-          font.size = "small",
-          title="Summary of Variables")
-```
-
-# Other Characteristics
-
-Below is a brief summary of the other types of variables present in the dataset:
-
-* Variables like Status and Population represent the social dimensions of the data collected.
-
-* Adult.Mortality, infant.deaths and under.five.deaths represent the different kinds of rates that are consolidated into Life.expectancy.
-
-* percentage.expenditure, GDP and Income.composition.of.resources give us a sense of the economic well-being of different countries.
-
-* We can analyse the effect of major diseases using the variables Hepatitis.B, Measles, Polio, HIV.AIDS and Diphtheria and lifestyles of people using Alcohol and BMI.
-
-# Potential Challenges
-
-#### Missingness
-
-The primary challenge facing the project is missing data. In the 2014 subset of the Life Expectancy dataset, there are 51 observations with a missing value in at least one of the potential predictors:
-
-* 41x 'Population' observations 
-
-* 10x 'Hep.B' observations
-
-* 28x 'GDP' observations
-
-* 10x 'Schooling' observations
-
-* 10x 'Income.composition.of.resources' observations
-
-The team has proposed three potential avenues for mitigating the effects of these missing values. The observations in question may be dropped or filled with a mean or median value for that variable based on the observed skew.
-
-#### Skew
-
-There is a second challenge posed in some of the variables in the dataset by a skewed distribution. When checking box plots of all variables, we found 4 variables may need transformation before inclusion in the final model.
 
 ```{r, fig.width=7, fig.height=5, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 ## If interested, Comment out to see whats going on ##
