@@ -9,26 +9,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# packages <- (c("table1", "ggplot2", "xtable", "pander", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
-# # Install packages not yet installed
-# installed_packages <- packages %in% rownames(installed.packages())
-# if (any(installed_packages == FALSE)) {
-#   install.packages(packages[!installed_packages])
-# }
-# # Packages loading
-# invisible(lapply(packages, library, character.only = TRUE))
-
-library(table1)
-library(ggplot2)
-library(xtable)
-library(stargazer)
-library(pander)
-library(corrplot)
-library(tidyverse)
-library(ggfortify)
-library(caTools)
-library(gridExtra)
-
+packages <- (c("table1", "ggplot2", "xtable", "pander","ggcorrplot", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
 ```
 
 # Data Overview
@@ -349,6 +337,20 @@ c7_1 <- ggplot(df_life_expectancy_2014, aes(x=log10(Population)))+
 grid.arrange(c6,c7,c6_1,c7_1,ncol=2)
 ```
 
+```{r skewed data,warning=FALSE,fig.width=8,fig.height=4,echo=FALSE,fig.show='hold',out.width='50%'}
+ggplot(df_life_expectancy_2014, aes(x=Diphtheria)) + 
+    geom_density(alpha=.3, fill="red", color="red", size=1.5)+
+    geom_vline(aes(xintercept=mean(Diphtheria)), size=1)+
+    ggtitle("Distribution density of Diphtheria ") +
+    theme(text = element_text(size = 18))
+ggplot(df_life_expectancy_2014, aes(x=GDP)) + 
+    geom_density(alpha=.3, fill="red", color="red", size=1.5)+
+    geom_vline(aes(xintercept=mean(GDP)), size=1)+
+    ggtitle("Distribution density of GDP ") +
+    theme(text = element_text(size = 18))
+```
+**Potential solution** 
+We can use log transformation on skewed variables. We can also remove outliers or normalize(min-max) our dataset.
 
 \newpage
 # Appendix A - Regression Models
