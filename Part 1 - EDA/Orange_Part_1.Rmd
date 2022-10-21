@@ -159,9 +159,8 @@ Below is a brief summary of the other types of variables present in the dataset:
 
 # Potential Challenges
 
-#### Missingness
+**Missingness**
   
-\
 The primary challenge facing the project is missing data. In the 2014 subset of the Life Expectancy dataset, there are 51 observations with a missing value in at least one of the potential predictors:
 
 * 41x 'Population' observations 
@@ -175,11 +174,12 @@ The primary challenge facing the project is missing data. In the 2014 subset of 
 * 10x 'Income.composition.of.resources' observations
 
 The team has proposed three potential avenues for mitigating the effects of these missing values. The observations in question may be dropped or filled with a mean or median value for that variable based on the observed skew.
-
-#### Skew
   
 \
-There is a second challenge posed in some of the variables in the dataset by a skewed distribution. When checking box plots of all variables, we found 4 variables may need transformation before inclusion in the final model.
+\
+**Skew**
+  
+There is a second challenge posed in some of the variables in the dataset by a skewed distribution. When checking boxplots of all variables, we found 4 variables may need transformation before inclusion in the final model.
 
 
 ```{r, fig.width=7, fig.height=5, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
@@ -252,7 +252,7 @@ grid.arrange(c3,c5,c6,c7)
 ```
 **Potential solution**
   
-We may want to use log transformation for population and GDP, because of the magnitude of gaps. But for other two, we need more investigation due to the difficulty of interpretation. The box plots and histograms of the population and GDP variables after log transformation yield a better distribution:
+We may want to use log transformation for population and GDP, because of the magnitude of gaps. But for other two, we need more investigation due to the difficulty of interpretation. The boxplots and histograms of the population and GDP variables after log transformation yield a better distribution:
 
 ```{r, fig.width=7, fig.height=4, fig.show='hold', out.width="85%", fig.align='center', results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
