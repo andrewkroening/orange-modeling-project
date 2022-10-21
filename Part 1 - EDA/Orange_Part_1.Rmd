@@ -351,7 +351,7 @@ corrplot(le14_cont_clean.cor, method="color", col=col(200),
 #### "Figure XXX - Histgrams for Potential Predictor Variables" 
 \
 \
-```{r histograms, echo=FALSE, results='asis'}
+```{r histograms, fig.width=12, fig.height=12, fig.show='hold', fig.align='center', echo=FALSE, results='asis'}
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   library(grid)
 
@@ -396,7 +396,7 @@ for(i in 1:ncol(le14_cont_clean_subset)){
   ggp <- ggplot(le14_cont_clean_subset, aes_string(x = col)) +
     geom_histogram(bins = 30, fill = "lightblue", color = "darkblue") +
     labs(y = "Frequency")+
-    geom_vline(xintercept = mean(le14_cont_clean_subset[[col]]), col = "red", lwd=1.5) 
+    geom_vline(xintercept = mean(le14_cont_clean_subset[[col]]), col = "orangered", lwd=1.2) 
   myplots[[i]] <- ggp  # add each plot into plot list
 }
 
