@@ -1,3 +1,6 @@
+.DS_Store
+*/Orange_Part_3_cache/
+*/Orange_Part_3_files/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
