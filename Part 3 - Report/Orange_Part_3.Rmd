@@ -1,40 +1,39 @@
-----
-title: "Project Proposal"
-author: "Echo Chen, Andrew Kroening, Pooja Kabber, Dingkun Yang"
-output: pdf_document
-date: "November 22nd, 2022"
+---
+title: "R Notebook"
+output: html_notebook
 ---
 
-# Report Draft
-## 1.load data
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-packages <- (c("table1", "ggplot2", "xtable", "pander","ggcorrplot", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
-# Install packages not yet installed
-installed_packages <- packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages(packages[!installed_packages])
-}
-# Packages loading
-invisible(lapply(packages, library, character.only = TRUE))
-```
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
-```{r read_data, echo=FALSE, include=FALSE}
-df_life_expectancy <- read.csv("/Users/andrewkroening/Desktop/orange-modeling-project/Datasets/Life_Expectancy_Data.csv")
-df_life_expectancy <- data.frame(df_life_expectancy)
-df_life_expectancy$Status <- factor(df_life_expectancy$Status)
-df_life_expectancy_2014 <- df_life_expectancy[df_life_expectancy$Year == 2014, ]
-```
-## 2. clean data 
 ```{r}
-# high VIFS
-mod.linear <- lm(df_Life.expectancy~ ., data = subset(data, select =-c(Status)))
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(ggcorrplot)
+library(corrplot)
+library(leaps)
+library(car)
+library(Metrics)
+library(reshape2)
+library(ggpubr)
+library(moments)
+```
+#1. plot to see relationship 
+@ Pooja
+```{r,fig.width=10,fig.height=4}
+data_org <- read.csv(file = 'Life_Expectancy_Data.csv')
+data<-df_life_expectancy[data_org$Year == 2014, ]
+data <- subset(data, select = -c(Country, Year))
+data$Status <- as.factor(data$Status)
+copy_data<- data
+data <- as.data.frame(scale(subset(data,select = -c(Status)), scale=TRUE, center = TRUE))
+data$Status <- copy_data$Status
+data_FULL <- data
+mod.linear <- lm(Life.expectancy~ ., data = subset(data,select =-c(Status)))
 vifs <- data.frame(vif(mod.linear))
-
-set_plot_dimensions(16,8)
+# plot go tp appendix
 ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) + 
     geom_bar(aes(fill=vif.mod.linear.>5),stat="identity")+
     scale_y_continuous(trans = "sqrt",  breaks = c(5, 10, 50, 100))+
@@ -45,21 +44,18 @@ ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) +
     theme(text = element_text(size = 18))+
     scale_fill_brewer(palette="Dark2")
 ```
-```{r}
-# drop high VIFS
-data_EDA <- subset(df_Life.expectancy, select = -c(infant.deaths))
+```{r,fig.width=10,fig.height=4}
+# reduced correlation matrix
+data_EDA <- subset(data, select = -c(infant.deaths))
 data_EDA <- subset(data_EDA, select = -c(GDP))
 data_EDA <- subset(data_EDA, select = -c(thinness..1.19.years))
-```
-```{r}
-# check correlation matrix and VIF again
-set_plot_dimensions(16,10)
 corr <- round(cor(subset(data_EDA, select =-c(Status))), 3)
 ggcorrplot(corr,type = "upper", lab = TRUE, outline.color = "black", lab_size = 4, legend.title = "Correlation")
+```
+```{r,fig.width=10,fig.height=4}
 mod.linear <- lm(Life.expectancy~ ., data = subset(data_EDA, select =-c(Status)))
 vifs <- data.frame(vif(mod.linear))
 
-set_plot_dimensions(16,8)
 ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) + 
     geom_bar(aes(fill=vif.mod.linear.<5),stat="identity")+
     scale_y_continuous(trans = "sqrt",  breaks = c(5, 10, 50, 100))+
@@ -71,8 +67,7 @@ ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) +
     scale_fill_brewer(palette="Dark2")
 ```
 
-
-## 3. choose variables( R & AIC )
+## 3. choose variables( R & BIC )
 ```{r}
 # plot 
 regfit.best <- regsubsets(Life.expectancy~., data= data_EDA, nvmax = 16)
@@ -82,14 +77,31 @@ plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
 which.max(reg.summary$adjr2)
 points(15,reg.summary$adjr2[15], col="red",cex=2,pch=20)
 
-# AIC with its smallest value
-plot(reg.summary$aic,xlab="Number of Variables",ylab="AIC",type='l')
-which.min(reg.summary$aic)
-points(12,reg.summary$aic[12],col="red",cex=2,pch=20)
-# forward backward?
+# BIC with its smallest value
+plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
+which.min(reg.summary$bic)
+points(12,reg.summary$bic[12],col="red",cex=2,pch=20)
+# backward
+regfit.bwd <- regsubsets(Life.expectancy~.,data=data_EDA,nvmax=16,method="backward")
+bwd.summary <- summary(regfit.bwd)
+
+# bwd.summary
+plot(bwd.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
+which.min(bwd.summary$bic)
+points(12,bwd.summary$bic[12],col="red",cex=2,pch=20)
 ```
 
 ## 4. transformation (missing & skewed)
+@ echo fifth
+@ Pooja first 
+
+
+```{r}
+library(mice)
+data.imp<- mice(train, m = 5, method = 'pmm')
+mod1<-with(data.imp, lm(Life.expectancy~.))
+pool(mod1)
+```
 
 ## 5. select model (check asumptions)
 ```{r}
@@ -104,13 +116,6 @@ x.test <-data_FULL[!sample, ]
 y.test <- data_FULL[!sample, ]$Life.expectancy
 model.full<- lm(Life.expectancy~., data = train)
 summary(model.full)
-```
-```{r}
-pred <- predict(model.full, newdata=x.test)
-rmse(pred,y.test)
-summary(model.full)$adj.r.squared
-par(mfrow=c(2,2))
-plot(model.full)
 ```
 The linearity assumptions are met for the full model We can notice that all linear regression assumptions are roughly met:
 
@@ -139,12 +144,7 @@ x.test <-data_FS[!sample, ]
 y.test <- data_FS[!sample, ]$Life.expectancy
 model.FS <- lm(Life.expectancy~., data = train)
 summary(model.FS)
-#prediction ?
-pred <- predict(model.EDA, newdata=x.test)
-rmse(pred,y.test)
-summary(model.EDA)$adj.r.squared
-par(mfrow=c(2,2))
-plot(model.EDA)
+
 # cheack assumption
 pred <- predict(model.FS, newdata=x.test)
 rmse(pred,y.test)
@@ -152,4 +152,3 @@ summary(model.FS)$adj.r.squared
 par(mfrow=c(2,2))
 plot(model.FS)
 ```
-
