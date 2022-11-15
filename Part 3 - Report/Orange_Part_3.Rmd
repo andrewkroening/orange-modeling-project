@@ -1,4 +1,4 @@
----
+----
 title: "Project Proposal"
 author: "Echo Chen, Andrew Kroening, Pooja Kabber, Dingkun Yang"
 output: pdf_document
@@ -6,3 +6,150 @@ date: "November 22nd, 2022"
 ---
 
 # Report Draft
+## 1.load data
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+packages <- (c("table1", "ggplot2", "xtable", "pander","ggcorrplot", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra"))
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+```
+
+```{r read_data, echo=FALSE, include=FALSE}
+df_life_expectancy <- read.csv("/Users/andrewkroening/Desktop/orange-modeling-project/Datasets/Life_Expectancy_Data.csv")
+df_life_expectancy <- data.frame(df_life_expectancy)
+df_life_expectancy$Status <- factor(df_life_expectancy$Status)
+df_life_expectancy_2014 <- df_life_expectancy[df_life_expectancy$Year == 2014, ]
+```
+## 2. clean data 
+```{r}
+# high VIFS
+mod.linear <- lm(df_Life.expectancy~ ., data = subset(data, select =-c(Status)))
+vifs <- data.frame(vif(mod.linear))
+
+set_plot_dimensions(16,8)
+ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) + 
+    geom_bar(aes(fill=vif.mod.linear.>5),stat="identity")+
+    scale_y_continuous(trans = "sqrt",  breaks = c(5, 10, 50, 100))+
+    geom_hline(yintercept = 5, colour = "red") + 
+    ggtitle("VIF per feature") +
+    xlab("Featurs") + ylab("VIF") +
+    theme(axis.text.x=element_text(angle=20, hjust=1))+
+    theme(text = element_text(size = 18))+
+    scale_fill_brewer(palette="Dark2")
+```
+```{r}
+# drop high VIFS
+data_EDA <- subset(df_Life.expectancy, select = -c(infant.deaths))
+data_EDA <- subset(data_EDA, select = -c(GDP))
+data_EDA <- subset(data_EDA, select = -c(thinness..1.19.years))
+```
+```{r}
+# check correlation matrix and VIF again
+set_plot_dimensions(16,10)
+corr <- round(cor(subset(data_EDA, select =-c(Status))), 3)
+ggcorrplot(corr,type = "upper", lab = TRUE, outline.color = "black", lab_size = 4, legend.title = "Correlation")
+mod.linear <- lm(Life.expectancy~ ., data = subset(data_EDA, select =-c(Status)))
+vifs <- data.frame(vif(mod.linear))
+
+set_plot_dimensions(16,8)
+ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) + 
+    geom_bar(aes(fill=vif.mod.linear.<5),stat="identity")+
+    scale_y_continuous(trans = "sqrt",  breaks = c(5, 10, 50, 100))+
+    geom_hline(yintercept = 5, colour = "red") + 
+    ggtitle("VIF per feature") +
+    xlab("Featurs") + ylab("VIF") +
+    theme(axis.text.x=element_text(angle=20, hjust=1))+
+    theme(text = element_text(size = 18))+
+    scale_fill_brewer(palette="Dark2")
+```
+
+
+## 3. choose variables( R & AIC )
+```{r}
+# plot 
+regfit.best <- regsubsets(Life.expectancy~., data= data_EDA, nvmax = 16)
+reg.summary <- summary(regfit.best)
+# adjusted-R^2 with its largest value
+plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
+which.max(reg.summary$adjr2)
+points(15,reg.summary$adjr2[15], col="red",cex=2,pch=20)
+
+# AIC with its smallest value
+plot(reg.summary$aic,xlab="Number of Variables",ylab="AIC",type='l')
+which.min(reg.summary$aic)
+points(12,reg.summary$aic[12],col="red",cex=2,pch=20)
+# forward backward?
+```
+
+## 4. transformation (missing & skewed)
+
+## 5. select model (check asumptions)
+```{r}
+data_FS <- subset(data_EDA, select=c(Life.expectancy,Status, Adult.Mortality, percentage.expenditure,
+                                     Hepatitis.B, Polio, BMI, thinness.5.9.years, Measles,
+                                     Diphtheria,HIV.AIDS,Income.composition.of.resources,Schooling))
+set.seed(123)
+
+sample <- sample(c(TRUE, FALSE), nrow(data_FULL), replace=TRUE, prob=c(0.70,0.30))
+train <- data_FULL[sample, ]
+x.test <-data_FULL[!sample, ]
+y.test <- data_FULL[!sample, ]$Life.expectancy
+model.full<- lm(Life.expectancy~., data = train)
+summary(model.full)
+```
+```{r}
+pred <- predict(model.full, newdata=x.test)
+rmse(pred,y.test)
+summary(model.full)$adj.r.squared
+par(mfrow=c(2,2))
+plot(model.full)
+```
+The linearity assumptions are met for the full model We can notice that all linear regression assumptions are roughly met:
+
+- The Residuals vs Fitted plot
+
+There is no pattern in the residual plot. we can assume linear relationship between the predictors and the outcome variables. (linearity assumption)
+
+- The Scale-Location plot
+
+The residuals are spread equally across the ranges of predictors. (homoscedasticity assumption)
+
+The Normal Q-Q plot
+All the points spread along the reference line equally, it’s good enough to assume that the data has the normality of the residuals.(normality of the residuals assumption)
+
+The Residuals vs Leverage
+Any point in the 0.5 cook distance boundary are influential. However, there are no influential points here. (linearity assumption)
+
+## 6.models with conclusions
+
+```{r}
+set.seed(123)
+
+sample <- sample(c(TRUE, FALSE), nrow(data_FS), replace=TRUE, prob=c(0.70,0.30))
+train <- data_FS[sample, ]
+x.test <-data_FS[!sample, ]
+y.test <- data_FS[!sample, ]$Life.expectancy
+model.FS <- lm(Life.expectancy~., data = train)
+summary(model.FS)
+#prediction ?
+pred <- predict(model.EDA, newdata=x.test)
+rmse(pred,y.test)
+summary(model.EDA)$adj.r.squared
+par(mfrow=c(2,2))
+plot(model.EDA)
+# cheack assumption
+pred <- predict(model.FS, newdata=x.test)
+rmse(pred,y.test)
+summary(model.FS)$adj.r.squared
+par(mfrow=c(2,2))
+plot(model.FS)
+```
+
