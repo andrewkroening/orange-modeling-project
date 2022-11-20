@@ -1,154 +1,228 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Analysis of Global Life Expectancy"
+author: "Dingkun Yang, Echo Chen, Andrew Kroening, Pooja Kabber"
+output: pdf_document
+date: "November 22nd, 2022"
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+Should we be using k-fold cross validation due to training data size?
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
-
-```{r}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
-library(ggplot2)
-library(ggcorrplot)
-library(corrplot)
-library(leaps)
-library(car)
-library(Metrics)
-library(reshape2)
-library(ggpubr)
-library(moments)
-```
-#1. plot to see relationship 
-@ Pooja
-```{r,fig.width=10,fig.height=4}
-data_org <- read.csv(file = 'Life_Expectancy_Data.csv')
-data<-df_life_expectancy[data_org$Year == 2014, ]
-data <- subset(data, select = -c(Country, Year))
-data$Status <- as.factor(data$Status)
-copy_data<- data
-data <- as.data.frame(scale(subset(data,select = -c(Status)), scale=TRUE, center = TRUE))
-data$Status <- copy_data$Status
-data_FULL <- data
-mod.linear <- lm(Life.expectancy~ ., data = subset(data,select =-c(Status)))
-vifs <- data.frame(vif(mod.linear))
-# plot go tp appendix
-ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) + 
-    geom_bar(aes(fill=vif.mod.linear.>5),stat="identity")+
-    scale_y_continuous(trans = "sqrt",  breaks = c(5, 10, 50, 100))+
-    geom_hline(yintercept = 5, colour = "red") + 
-    ggtitle("VIF per feature") +
-    xlab("Featurs") + ylab("VIF") +
-    theme(axis.text.x=element_text(angle=20, hjust=1))+
-    theme(text = element_text(size = 18))+
-    scale_fill_brewer(palette="Dark2")
-```
-```{r,fig.width=10,fig.height=4}
-# reduced correlation matrix
-data_EDA <- subset(data, select = -c(infant.deaths))
-data_EDA <- subset(data_EDA, select = -c(GDP))
-data_EDA <- subset(data_EDA, select = -c(thinness..1.19.years))
-corr <- round(cor(subset(data_EDA, select =-c(Status))), 3)
-ggcorrplot(corr,type = "upper", lab = TRUE, outline.color = "black", lab_size = 4, legend.title = "Correlation")
-```
-```{r,fig.width=10,fig.height=4}
-mod.linear <- lm(Life.expectancy~ ., data = subset(data_EDA, select =-c(Status)))
-vifs <- data.frame(vif(mod.linear))
-
-ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) + 
-    geom_bar(aes(fill=vif.mod.linear.<5),stat="identity")+
-    scale_y_continuous(trans = "sqrt",  breaks = c(5, 10, 50, 100))+
-    geom_hline(yintercept = 5, colour = "red") + 
-    ggtitle("VIF per feature") +
-    xlab("Featurs") + ylab("VIF") +
-    theme(axis.text.x=element_text(angle=20, hjust=1))+
-    theme(text = element_text(size = 18))+
-    scale_fill_brewer(palette="Dark2")
+rm(list = ls())
 ```
 
-## 3. choose variables( R & BIC )
-```{r}
-# plot 
-regfit.best <- regsubsets(Life.expectancy~., data= data_EDA, nvmax = 16)
+```{r load_libraries, echo=FALSE, message=FALSE, warning=FALSE}
+packages <- (c("table1", "ggplot2", "xtable", "pander","ggcorrplot", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra", "leaps", "Metrics", "reshape2", "moments", "mice", "cowplot"))
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+```
+
+```{r read_data, echo=FALSE, fig.width=10,fig.height=4}
+df_life_expectancy <- read.csv(file = '../Datasets/Life_Expectancy_Data.csv')
+df_life_expectancy_2014 <- df_life_expectancy[df_life_expectancy$Year == 2014, ]
+```
+
+```{r clean_data, echo=FALSE, fig.width=10,fig.height=4}
+# data <- subset(data, select = -c(Country, Year))
+
+# set factor variables
+df_life_expectancy_2014$Status <- as.factor(df_life_expectancy_2014$Status)
+df_life_expectancy_2014$Year <- as.factor(df_life_expectancy_2014$Year)
+df_life_expectancy_2014$Country <- as.factor(df_life_expectancy_2014$Country)
+```
+
+# Abstract
+*A few sentences describing the purpose of the analysis, the data, and key results.*
+
+The analysis conducted below (is based on) understanding which factors influence life expectancy and the development status of countries around the world. The dataset used for this research consisting of national disease, economic, and social (factors) has been collected by the World Health Organization (WHO). The WHO compiles data on thousands of variables for as many countries as feasible and presents them for analysis.
+
+(key results)
+
+# Introduction
+*Provide more background on the data and research questions. Be sure to cite the data and background information appropriately (APA style is fine)*
+
+This particular dataset contains national-level observations of variables related to life expectancy around the globe for a period spanning the early portion of the 21st century. The complete dataset includes observations beginning in the year 2000 and ending in the year 2015. As a full dataset, there are 2,938 observations for 22 variables. Practically, each country has approximately one observation each year, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering significant disease, economic, and social factors.
+
+## Research Questions
+
+Below are the questions we aim to answer based on this analysis:
+
+### Question #1 (Prediction)
+
+*"How did major disease, economic, and social factors impact life expectancy around the globe in 2014?"*
+
+### Question #2 (Inference)
+
+*"How did disease and mortality rates, along with national economic factors, contribute to a country's development status in 2014?"*
+
+(cite data and background info)
+
+# Methods
+*Describe the process you used to conduct analysis. This includes EDA and any relevant data cleaning information (e.g., did you exclude missing values? If so, how many? Did you collapse categories for any variables?) Then describe the models you fit, and any changes you made to improve model fit (e.g., did you exclude any influential points? Did you do have to address multicollinearity issues? Did you transform any variables?). Also describe model diagnostics. The organization of this section may depend on your particular dataset/analysis, but you may want to break it into subsections such as “Data,” “Models,” and “Model assessment.” Note that you do not present any results in this section.*
+
+## Data
+
+1. Missing data - complete case and last two methods
+
+```{r handling_missing_data, echo=FALSE}
+# TODO: should we remove rows with 0 in percentage expenditure? can percentage expenditure be 0?
+
+# complete case analysis - 183 to 131 rows
+df_life_expectancy_cc_2014 <- df_life_expectancy_2014[complete.cases(df_life_expectancy_2014),]
+df_life_expectancy_2014 <- df_life_expectancy_cc_2014
+
+# stochastic imputation
+
+# multiple imputation
+```
+
+2. Other data cleaning
+
+Subsetted data for only 2014
+
+3. EDA plots from part 1
+
+```{r eda, echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+library(GGally)
+
+# scatterplot matrix
+ggpairs(subset(df_life_expectancy_cc_2014, select = c(Life.expectancy, GDP, Population, percentage.expenditure, Hepatitis.B, Measles, Polio, HIV.AIDS, Diphtheria, Schooling, Income.composition.of.resources)))
+```
+
+```{r eda_boxplots, echo=FALSE, message=FALSE, warning=FALSE}
+# boxplot matrix
+life_expectancy_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Life.expectancy, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+gdp_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=GDP, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+
+population_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Population, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+percentage_expenditure_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=percentage.expenditure, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+hepatitis_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Hepatitis.B, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+measles_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Measles, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+polio_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Polio, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+hiv_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=HIV.AIDS, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+diphtheria_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Diphtheria, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+schooling_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Schooling, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+income_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Income.composition.of.resources, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+
+
+#gender_plot <- ggplot(airline,aes(Gender, Age))+geom_boxplot(aes(fill=Satisfaction))
+plot_grid(life_expectancy_plot, gdp_plot, population_plot, percentage_expenditure_plot, hepatitis_plot, measles_plot, polio_plot, hiv_plot, diphtheria_plot, schooling_plot, income_plot, ncol=3)
+```
+
+```{r table_one, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+df_life_expectancy_14_subset <- subset(df_life_expectancy_2014,select = c(Status, Population, Life.expectancy, percentage.expenditure, Measles, Polio, HIV.AIDS, GDP, Schooling, Income.composition.of.resources, BMI, Total.expenditure))# select variables
+stargazer(df_life_expectancy_14_subset,type = "latex", no.space = TRUE,
+          report = ('vcsp*'), single.row = TRUE, header = FALSE,
+          column.sep.width = "0.2pt",
+          font.size = "small",
+          title="Summary of Variables")
+```
+
+## Models
+
+4. Model description
+
+The model used is linear regression.
+
+```{r model1, echo=FALSE}
+# model with apriori variables
+mlrmod <- lm(Life.expectancy ~ Status + Population + Life.expectancy + percentage.expenditure + Measles + Polio + HIV.AIDS + GDP + Schooling + Income.composition.of.resources + BMI + Total.expenditure, data = df_life_expectancy_2014)
+summary(mlrmod)
+
+lm1 <- lm(Life.expectancy ~ ., data = subset(df_life_expectancy_cc_2014, select = -c(Country, Year)))
+summary(lm1)
+
+m <- step(lm1, trace=FALSE, direction = 'backward')
+summary(m)
+
+# final model
+# final_model <- lm(formula = birth_weight ~ prev_preg + mrace + mht + mprepregwt + smoke + mrace*smoke, data = df)
+# options(xtable.comment = FALSE)
+# xtable(summary((final_model)), header=FALSE)
+# stargazer(confint(final_model, level=0.95), header=FALSE)
+
+par(mfrow = c(2,2))
+plot(mlrmod)
+plot(lm1)
+plot(m)
+```
+
+```{r model1_backward, echo=FALSE}
+# (?)
+regfit.best <- regsubsets(Life.expectancy ~ ., data = subset(df_life_expectancy_cc_2014, select = -c(Country, Year)), nvmax = 16)
 reg.summary <- summary(regfit.best)
 # adjusted-R^2 with its largest value
 plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted Rsq",type="l")
 which.max(reg.summary$adjr2)
-points(15,reg.summary$adjr2[15], col="red",cex=2,pch=20)
+# points(15,reg.summary$adjr2[15], col="red",cex=2,pch=20)
 
 # BIC with its smallest value
 plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
 which.min(reg.summary$bic)
-points(12,reg.summary$bic[12],col="red",cex=2,pch=20)
-# backward
-regfit.bwd <- regsubsets(Life.expectancy~.,data=data_EDA,nvmax=16,method="backward")
+# points(12,reg.summary$bic[12],col="red",cex=2,pch=20)
+
+# backward stepwise
+regfit.bwd <- regsubsets(Life.expectancy~.,data=subset(df_life_expectancy_cc_2014, select = -c(Country, Year)),nvmax=16,method="backward")
 bwd.summary <- summary(regfit.bwd)
 
 # bwd.summary
 plot(bwd.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
 which.min(bwd.summary$bic)
-points(12,bwd.summary$bic[12],col="red",cex=2,pch=20)
+# points(12,bwd.summary$bic[12],col="red",cex=2,pch=20)
+```
+## Model Assessment
+
+5. Model assessment (transformations, influential points, multicollinearity), model evaluation
+
+```{r model1_assessment, echo=FALSE}
+
+# summary plots for final model
+
 ```
 
-## 4. transformation (missing & skewed)
-@ echo fifth
-@ Pooja first 
+# Results
+*Here you should present results for all aspects of the analysis. The structure of this section should mirror the structure of the methods section. For example, you can start with a few key EDA results (e.g., a table of descriptive statistics), then present model results, then address assessment. This is the section where you will primarily refer to tables and figures. You should have at least 1 figure for each research question that illustrates a key result of the analysis.*
 
+## Data
+1. EDA
 
-```{r}
-library(mice)
-data.imp<- mice(train, m = 5, method = 'pmm')
-mod1<-with(data.imp, lm(Life.expectancy~.))
-pool(mod1)
-```
+## Models
 
-## 5. select model (check asumptions)
-```{r}
-data_FS <- subset(data_EDA, select=c(Life.expectancy,Status, Adult.Mortality, percentage.expenditure,
-                                     Hepatitis.B, Polio, BMI, thinness.5.9.years, Measles,
-                                     Diphtheria,HIV.AIDS,Income.composition.of.resources,Schooling))
-set.seed(123)
+2. Model results- Model summary table, confidence intervals, interpretation. (Why are we primarily referring to tables and figures here?)
 
-sample <- sample(c(TRUE, FALSE), nrow(data_FULL), replace=TRUE, prob=c(0.70,0.30))
-train <- data_FULL[sample, ]
-x.test <-data_FULL[!sample, ]
-y.test <- data_FULL[!sample, ]$Life.expectancy
-model.full<- lm(Life.expectancy~., data = train)
-summary(model.full)
-```
-The linearity assumptions are met for the full model We can notice that all linear regression assumptions are roughly met:
+3. Visualisations for key results
 
-- The Residuals vs Fitted plot
+## Model Assessment
 
-There is no pattern in the residual plot. we can assume linear relationship between the predictors and the outcome variables. (linearity assumption)
+(?)
 
-- The Scale-Location plot
-
-The residuals are spread equally across the ranges of predictors. (homoscedasticity assumption)
-
-The Normal Q-Q plot
-All the points spread along the reference line equally, it’s good enough to assume that the data has the normality of the residuals.(normality of the residuals assumption)
-
-The Residuals vs Leverage
-Any point in the 0.5 cook distance boundary are influential. However, there are no influential points here. (linearity assumption)
-
-## 6.models with conclusions
-
-```{r}
-set.seed(123)
-
-sample <- sample(c(TRUE, FALSE), nrow(data_FS), replace=TRUE, prob=c(0.70,0.30))
-train <- data_FS[sample, ]
-x.test <-data_FS[!sample, ]
-y.test <- data_FS[!sample, ]$Life.expectancy
-model.FS <- lm(Life.expectancy~., data = train)
-summary(model.FS)
-
-# cheack assumption
-pred <- predict(model.FS, newdata=x.test)
-rmse(pred,y.test)
-summary(model.FS)$adj.r.squared
-par(mfrow=c(2,2))
-plot(model.FS)
-```
+# Conclusion
+*Describe the key takeaways from your analysis, limitations, and future work that can be done to advance knowledge in this area.*
