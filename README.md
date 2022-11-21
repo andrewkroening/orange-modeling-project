@@ -5,7 +5,7 @@
 ### Repository Contents:
 
 * [Proposal](https://github.com/andrewkroening/orange-modeling-project/blob/865ec20bd9570d7fdd0d46c53f1dc9a6d40ad234/Orange_Proposal.pdf).........(04 October)
-* [Part 1](https://github.com/andrewkroening/orange-modeling-project/blob/865ec20bd9570d7fdd0d46c53f1dc9a6d40ad234/Orange_Part_1.pdf)..............(21 October)
+* [Part 1](https://github.com/andrewkroening/orange-modeling-project/blob/f0f1962ecc9ae115f134fa13a8c51c2155894d55/Part%201%20-%20EDA/Orange_Part_1.pdf)..............(21 October)
 * [Part 2](https://github.com/andrewkroening/orange-modeling-project/blob/865ec20bd9570d7fdd0d46c53f1dc9a6d40ad234/Orange_Part_2.pdf)..............(04 November)
 * [Part 3](https://github.com/andrewkroening/orange-modeling-project/blob/865ec20bd9570d7fdd0d46c53f1dc9a6d40ad234/Orange_Part_3.pdf)..............(22 November)
 * Final Draft.......(02 December)
