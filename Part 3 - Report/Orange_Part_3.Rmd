@@ -187,9 +187,13 @@ which.min(bwd.summary$bic)
 [Multicolinearity concerns]
 
 Percentage expenditure and GDP are the ones have higher VIF being over 10, WE NEED TO DECIDE WHICH ONE TO INCLUDE IN THE MODEL
+
+
+Since the GDP and population gaps may be large, for better interpretation, we use log(GDP) and log(population) as the predictor variables
+
 ```{r logistic, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE}
 # + GDP + Income.composition.of.resources+ Population
-le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources    + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
 stargazer(le14_fit_full,
           header=FALSE,
           no.space = TRUE,
@@ -217,7 +221,7 @@ stargazer(vif_table,
           type='latex')
 ```
 
-```{r ConfMat, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+```{r ConfMat, include=FALSE, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_full)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
 #conf_mat
 conf_mat_t <- matrix(c(14,5,5,107), ncol=2, byrow=TRUE)
@@ -236,14 +240,41 @@ stargazer(conf_mat_t,
 ```
 
 
-```{r ROCFull, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ROCFull, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_full),plot=T,print.thres=0.5,legacy.axes=T,
               print.auc =T,col="red3"))
 ```
 
 ```{r, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-le14_fit_1 <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-stargazer(le14_fit_1,
+# le14_fit_1 <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+le14_fit_3 <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+
+le14_fit_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+
+le14_fit_one <- glm(Status_num ~ Income.composition.of.resources , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+# summary(le14_fit_one)
+le14_fit_1 <- glm(Status_num ~ Life.expectancy + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+# summary(le14_fit_1)
+
+conf_mat_1 <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_1)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
+# conf_mat_1
+
+conf_mat_one <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_one)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed")
+conf_mat_one
+
+anova_one <- anova(le14_fit_1, le14_fit_one, test="Chisq")
+# anova_one
+
+# invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_1),plot=T,print.thres=0.5,legacy.axes=T,
+              # print.auc =T,col="red3"))
+
+invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_one),plot=T,print.thres=0.5,legacy.axes=T,
+              print.auc =T,col="red3"))
+
+
+### Shall we just have one variable???
+
+stargazer(le14_fit_full,le14_fit_3, le14_fit_final,le14_fit_1,le14_fit_one,
           header=FALSE,
           no.space = TRUE,
           single.row = TRUE,
@@ -253,7 +284,6 @@ stargazer(le14_fit_1,
           font.size = "small",
           title='Logistic Regression Model',
           type='latex')
-# summary(le14_fit_1)
 ```
 
 ```{r, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
@@ -273,9 +303,9 @@ stargazer(vif_table_1,
 Income composition of resources VIF is near 5, with p-value less than 0.05 (CANNOT DELETE, but maybe delete total expenditure)
 
 
-```{r ConfMat_1, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+```{r ConfMat_1, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 conf_mat_1 <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_1)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
-# conf_mat_1
+conf_mat_1
 conf_mat_t_1 <- matrix(c(14, 4, 5, 108),ncol=2, byrow=TRUE)
 colnames(conf_mat_t_1) <- c("True Developed","True Developing")
 rownames(conf_mat_t_1) <- c("Predicted Developed","Predicted Developing")
@@ -292,7 +322,7 @@ stargazer(conf_mat_t_1,
 ```
 
 
-```{r ROC2, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ROC2, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_1),plot=T,print.thres=0.5,legacy.axes=T,
               print.auc =T,col="red3"))
 ```
@@ -305,7 +335,7 @@ invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_1),plot
 
 ```
 
-```{r ANOVA1, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ANOVA1, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 anova_1 <- anova(le14_fit_full, le14_fit_1, test="Chisq")
 stargazer(anova_1,
           summary=FALSE,
@@ -353,7 +383,7 @@ stargazer(vif_table_2,
           type='latex')
 ```
 
-```{r ConfMat_2, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+```{r ConfMat_2, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 conf_mat_2 <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_2)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
 # conf_mat_2
 conf_mat_t_2 <- matrix(c(14,5,5,107), ncol=2, byrow=TRUE)
@@ -372,7 +402,7 @@ stargazer(conf_mat_2,
 ```
 
 
-```{r ROC3, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ROC3, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_2),plot=T,print.thres=0.5,legacy.axes=T,
               print.auc =T,col="red3"))
 ```
@@ -382,7 +412,7 @@ invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_2),plot
 
 ## Model 1 vs Model 2
 
-```{r ANOVA2, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ANOVA2, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 anova_2 <- anova(le14_fit_1, le14_fit_2, test="Chisq")
 stargazer(anova_2,
           summary=FALSE,
@@ -398,7 +428,7 @@ stargazer(anova_2,
 
 ## Full Model vs Model 2
 
-```{r ANOVA3, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ANOVA3, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 anova_3 <- anova(le14_fit_full, le14_fit_2, test="Chisq")
 stargazer(anova_3,
           summary=FALSE,
@@ -417,7 +447,7 @@ stargazer(anova_3,
 ###  Using Model 1 (w/o percentage expenditure) to predict out-of-sample (Year 2013) probabilities
 
 
-```{r ConfusionMatrix4, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ConfusionMatrix4, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 df_life_expectancy_2013_cleaned$predprob_model_1 <- predict(le14_fit_1, df_life_expectancy_2013_cleaned, type="response")
 conf_mat_3 <- confusionMatrix(as.factor(ifelse(df_life_expectancy_2013_cleaned$predprob_model_1>=0.5, "Developed", "Developing")), df_life_expectancy_2013_cleaned$Status, positive = "Developed" )
 # conf_mat_3$table
@@ -441,7 +471,7 @@ stargazer(conf_mat_t_3,
 ###  Using Model 2 (w/o GDP) to predict out-of-sampl e(Year 2013) probabilities
 
 
-```{r ConfusionMatrix5, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ConfusionMatrix5, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 df_life_expectancy_2013_cleaned$predprob_model_2 <- predict(le14_fit_2, df_life_expectancy_2013_cleaned, type="response")
 conf_mat_4 <- confusionMatrix(as.factor(ifelse(df_life_expectancy_2013_cleaned$predprob_model_2>=0.5, "Developed", "Developing")), df_life_expectancy_2013_cleaned$Status, positive = "Developed" )
 # conf_mat_4$table
@@ -505,7 +535,7 @@ stargazer(vif_table_3,
           type='latex')
 ```
 
-```{r ConfMat_3, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+```{r ConfMat_3, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 conf_mat_3 <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_3)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
 # conf_mat_3
 conf_mat_t_3 <- matrix(c(13,4,6,108), ncol=2, byrow=TRUE)
@@ -524,7 +554,7 @@ stargazer(conf_mat_3,
 ```
 
 
-```{r ROC4, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ROC4, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_3),plot=T,print.thres=0.5,legacy.axes=T,
               print.auc =T,col="red3"))
 ```
@@ -534,7 +564,7 @@ invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_3),plot
 
 ## Model 1 vs Model 3
 
-```{r ANOVA4, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ANOVA4, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 anova_2 <- anova(le14_fit_1, le14_fit_3, test="Chisq")
 stargazer(anova_2,
           summary=FALSE,
@@ -550,7 +580,7 @@ stargazer(anova_2,
 
 ## Full Model vs Model 3
 
-```{r ANOVA5, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=TRUE}
+```{r ANOVA5, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 anova_3 <- anova(le14_fit_full, le14_fit_3, test="Chisq")
 stargazer(anova_3,
           summary=FALSE,
@@ -608,10 +638,10 @@ stargazer(anova_3,
 [Presently, a dumping ground for all our images and lots until we know what we want to keep]
 
 ```{r eda, echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
-library(GGally)
+# library(GGally)
 
 # scatterplot matrix
-ggpairs(subset(df_life_expectancy_cc_2014, select = c(Life.expectancy, GDP, Population, percentage.expenditure, Hepatitis.B, Measles, Polio, HIV.AIDS, Diphtheria, Schooling, Income.composition.of.resources)))
+# ggpairs(subset(df_life_expectancy_cc_2014, select = c(Life.expectancy, GDP, Population, percentage.expenditure, Hepatitis.B, Measles, Polio, HIV.AIDS, Diphtheria, Schooling, Income.composition.of.resources)))
 ```
 
 ```{r eda_boxplots, echo=FALSE, message=FALSE, warning=FALSE}
