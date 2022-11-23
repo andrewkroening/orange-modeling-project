@@ -193,9 +193,15 @@ which.min(bwd.summary$bic)
 -----
 [Following are the ones updated]
 
+### EDA & Pre-possing:
 
+When conducting Exploratory Data Analysis (EDA) for WHO BALABALALALA dataset, there are 2938 observations with 22 variables in total ; [WE MAY COPY FROM OUR PART 1]
 
-TABLE NUMBER MAY CHANGE (DUE TO QUESTION 1 PART), TAKING THAT IN MIND WHEN REFERENCING 
+Due to missingness of some variables in the data, we subset our data from 183 to 131 observations (IF WE DO NOT MERGE POPULATION DATA FROM OTHER SOURCE)
+
+FOR BETTER INTERPERTATION, *Std. Income Composition of Resources* (IT RANGES FROM 0 TO 1), After transformation, instead of saying one unit, we say 1 percent
+
+**TABLE NUMBER MAY CHANGE (DUE TO QUESTION 1 PART), TAKING THAT IN MIND WHEN REFERENCING**
 
 (num): meaning each respective model, and why we did that
 
@@ -207,8 +213,6 @@ TABLE NUMBER MAY CHANGE (DUE TO QUESTION 1 PART), TAKING THAT IN MIND WHEN REFER
 
 (4) Just out of curiosity (SURPRISE)
 
-
-**FOR BETTER INTERPERTATION (IT RANGES FROM 0 TO 1), After transformation, one unit would be 1 percent**
 
 The fitted logistic regression with *Life Expectancy*,*Health Expenditure/GDP per capita*, *BMI*, *Health Gov. Expenditure Percentage*, *HIV/AIDS Deaths/1000 live births*,*Log of GDP per capita*, *Log of Population*, *Std. Income Composition of Resources*, *Years of Schooling* as predictors for the dataset is:
 
@@ -246,7 +250,7 @@ stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_final, le14_fit_one,
 
 ```
 
-As Table XXXX: Logistic Regression Models above shown, out of 8 predictor variables, only one predictor variable has p-values less than 0.05. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as developed country is that while holding all other predictor variables constant, one percent increase in *Std. Income Composition of Resources* (prepossessed by timing 100), the odds of that country being identified as developed country increases about 1.55 ($e^{0.44}$) times .
+As Table XXXX: Logistic Regression Models above shown, out of 8 predictor variables, only one predictor variable has p-values less than 0.05. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as developed country is that while holding all other predictor variables constant, one percent increase in *Std. Income Composition of Resources* (prepossessed by timing 100), the odds of that country being identified as developed country increases about 1.55 times ($e^{0.44}$).
 
 
 ```{r multicol test, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
