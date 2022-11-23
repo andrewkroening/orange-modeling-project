@@ -37,12 +37,15 @@ df_life_expectancy_2014 <- df_life_expectancy[df_life_expectancy$Year == 2014, ]
 df_life_expectancy_2014$Status_num <- rep(0,nrow(df_life_expectancy_2014))
 df_life_expectancy_2014$Status_num[df_life_expectancy_2014$Status=="Developed"] <- 1
 df_life_expectancy_2014_cleaned <- na.omit(df_life_expectancy_2014)
+df_life_expectancy_2014_cleaned$Income.composition.of.resources <- df_life_expectancy_2014_cleaned$Income.composition.of.resources * 100 
+# FOR BETTER INTERPERTATION (IT RANGES FROM 0 TO 1), After transformation, one unit would be 1 percent***
 
 # Testing 
 df_life_expectancy_2013 <- df_life_expectancy[df_life_expectancy$Year == 2013, ]
 df_life_expectancy_2013$Status_num <- rep(0,nrow(df_life_expectancy_2013))
 df_life_expectancy_2013$Status_num[df_life_expectancy_2013$Status=="Developed"] <- 1
 df_life_expectancy_2013_cleaned <- na.omit(df_life_expectancy_2013)
+df_life_expectancy_2013_cleaned$Income.composition.of.resources <- df_life_expectancy_2013_cleaned$Income.composition.of.resources * 100 
 ```
 
 
@@ -186,15 +189,50 @@ which.min(bwd.summary$bic)
 
 [Multicolinearity concerns]
 
-Percentage expenditure and GDP are the ones have higher VIF being over 10, WE NEED TO DECIDE WHICH ONE TO INCLUDE IN THE MODEL
+
+-----
+[Following are the ones updated]
 
 
-Since the GDP and population gaps may be large, for better interpretation, we use log(GDP) and log(population) as the predictor variables
+
+TABLE NUMBER MAY CHANGE (DUE TO QUESTION 1 PART), TAKING THAT IN MIND WHEN REFERENCING 
+
+(num): meaning each respective model, and why we did that
+
+(1) Since the population gaps may be large, , we use log transformation on the predictor variable, *Population*.
+
+(2) Since VIF for Model 1 shows that *Health Expenditure/GDP per capita* and *GDP per capita* are the ones have high VIF being over 10, WE DECIDE TO DELETE *Health Expenditure/GDP per capita* by taking another variable *Health Government Expenditure Percentage* into consideration, since the later carry some portion of the same information as the former one.
+
+(3) For better interpretation we use log transformation on  *GDP per capita* (THIS IS OUR FINAL MODEL)
+
+(4) Just out of curiosity (SURPRISE)
+
+
+**FOR BETTER INTERPERTATION (IT RANGES FROM 0 TO 1), After transformation, one unit would be 1 percent**
+
+The fitted logistic regression with *Life Expectancy*,*Health Expenditure/GDP per capita*, *BMI*, *Health Gov. Expenditure Percentage*, *HIV/AIDS Deaths/1000 live births*,*Log of GDP per capita*, *Log of Population*, *Std. Income Composition of Resources*, *Years of Schooling* as predictors for the dataset is:
+
+$$
+\begin{aligned}
+\widehat{ln(\dfrac{Developed}{Developing})}=-8.88&-0.14\ Life\ Expectancy-0.03\ BMI+0.27\ Health\ Gov.\ Expenditure\ Percentage\\
+&-145.58\ HIV/AIDS\ Deaths\ per\ 1000\ live\ births-0.35\ ln(GDP\ per\ capita)\\
+&+0.44\ Std.\ Income\ Composition\ of\ Resources-0.21\ ln(Population)\\
+&+0.20\ Years\ of\ Schooling
+\end{aligned}
+$$
+
 
 ```{r logistic, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE}
-# + GDP + Income.composition.of.resources+ Population
-le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-stargazer(le14_fit_full,
+le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+
+le14_fit_semi_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+
+le14_fit_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+
+le14_fit_one <- glm(Status_num ~ Income.composition.of.resources , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+
+stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_final, le14_fit_one,
+          dep.var.labels="Development Status",
           header=FALSE,
           no.space = TRUE,
           single.row = TRUE,
@@ -202,14 +240,23 @@ stargazer(le14_fit_full,
           column.sep.width = "0.2pt",
           digits = 2,
           font.size = "small",
-          title='Logistic Regression Model',
+          title='Logistic Regression Models',
+          covariate.labels=c("Life Expectancy","Health Expenditure/GDP per capita", "BMI", "Health Gov. Expenditure Percentage", "HIV/AIDS Deaths/1000 live births", "GDP per capita","Log of GDP per capita", "Std. Income Composition of Resources", "Log of Population","Years of Schooling"),
           type='latex')
-# summary(le14_fit_full)
+
 ```
 
+As Table XXXX: Logistic Regression Models above shown, out of 8 predictor variables, only one predictor variable has p-values less than 0.05. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as developed country is that while holding all other predictor variables constant, one percent increase in *Std. Income Composition of Resources* (prepossessed by timing 100), the odds of that country being identified as developed country increases about 1.55 ($e^{0.44}$) times .
+
+
 ```{r multicol test, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-vif_table <- vif(le14_fit_full)
-stargazer(vif_table,
+vif_table_full <- vif(le14_fit_full)
+vif_table_semi_final <- vif(le14_fit_semi_final)
+vif_table_final <- vif(le14_fit_final)
+vif_table_summary <- dplyr::bind_rows(vif_table_full, vif_table_semi_final, vif_table_final)
+colnames(vif_table_summary) <- c("Life Expectancy","Health Expenditure/GDP per capita", "BMI", "Health Gov. Expenditure Percentage", "HIV/AIDS Deaths/1000 live births", "GDP per capita","Std. Income composition of resources", "Log of Population" , "Years of Schooling", "Log of GDP per capita")
+rownames(vif_table_summary) <- c("(1)", "(2)", "(3)")
+stargazer(vif_table_summary,
           summary=FALSE,
           header=FALSE,
           no.space = TRUE,
@@ -218,13 +265,22 @@ stargazer(vif_table,
           digits = 2,
           font.size = "small",
           title='Variance Inflation Factors',
-          type='latex')
+          flip=TRUE,
+          type='latex'
+          )
+
 ```
 
-```{r ConfMat, include=FALSE, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_full)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
-#conf_mat
-conf_mat_t <- matrix(c(14,5,5,107), ncol=2, byrow=TRUE)
+\newpage
+
+###### Confusion Matrix for our final model
+
+When calculate the accuracy of the model, we use confusion matrix (as Table XXXX shown below) to calculate True Positive (TP), True Negative (TN), False Negative (FN), and False Positive (FP) count by comparing predicted values and actual values. For prediction, we use the threshold of 0.5 to classify games as Win or Loss. As you can see, the accuracy of this model is 0.94.
+
+```{r ConfMat, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_final)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
+# conf_mat
+conf_mat_t <- matrix(c(15,4,4,108), ncol=2, byrow=TRUE)
 colnames(conf_mat_t) <- c("True Developed","True Developing")
 rownames(conf_mat_t) <- c("Predicted Developed","Predicted Developing")
 stargazer(conf_mat_t,
@@ -235,109 +291,47 @@ stargazer(conf_mat_t,
           column.sep.width = "0.2pt",
           digits = 2,
           font.size = "small",
-          title="Confusion Matrix for Full Model",
+          title="Confusion Matrix for Final Model",
           type='latex')
 ```
 
+$$
+\begin{aligned}
+Accuracy &= \dfrac{TP + TN}{TP + FN + FP + TN}\\
+&= \dfrac{15+108}{15+4+4+108}\\
+&= 0.94
+\end{aligned}
+$$
+$$
+95\%\ Confidence\ Interval\ of\ Accuracy: (0.88, 0.97)
+$$
 
-```{r ROCFull, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_full),plot=T,print.thres=0.5,legacy.axes=T,
-              print.auc =T,col="red3"))
-```
-
-```{r, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-# le14_fit_1 <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-le14_fit_3 <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-
-le14_fit_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-
-le14_fit_one <- glm(Status_num ~ Income.composition.of.resources , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-# summary(le14_fit_one)
-le14_fit_1 <- glm(Status_num ~ Life.expectancy + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-# summary(le14_fit_1)
-
-conf_mat_1 <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_1)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
-# conf_mat_1
-
-conf_mat_one <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_one)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed")
-conf_mat_one
-
-anova_one <- anova(le14_fit_1, le14_fit_one, test="Chisq")
-# anova_one
-
-# invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_1),plot=T,print.thres=0.5,legacy.axes=T,
-              # print.auc =T,col="red3"))
-
-invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_one),plot=T,print.thres=0.5,legacy.axes=T,
-              print.auc =T,col="red3"))
+### ROC Curvey for our final model
 
 
-### Shall we just have one variable???
-
-stargazer(le14_fit_full,le14_fit_3, le14_fit_final,le14_fit_1,le14_fit_one,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          report = ('vcsp*'),
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Logistic Regression Model',
-          type='latex')
-```
-
-```{r, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-vif_table_1 <- vif(le14_fit_1)
-stargazer(vif_table_1,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Variance Inflation Factors',
-          type='latex')
-```
-
-Income composition of resources VIF is near 5, with p-value less than 0.05 (CANNOT DELETE, but maybe delete total expenditure)
+Receiver Operator Characteristic (ROC) curve (Sensitivity vs 1 - Specificity) is shown below, and the Area Under the Curve (AUC) is 0.975, when we set the threshold at 0.5.
 
 
-```{r ConfMat_1, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-conf_mat_1 <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_1)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
-conf_mat_1
-conf_mat_t_1 <- matrix(c(14, 4, 5, 108),ncol=2, byrow=TRUE)
-colnames(conf_mat_t_1) <- c("True Developed","True Developing")
-rownames(conf_mat_t_1) <- c("Predicted Developed","Predicted Developing")
-stargazer(conf_mat_t_1,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title="Confusion Matrix for Model 1",
-          type='latex')
-```
-
-
-```{r ROC2, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_1),plot=T,print.thres=0.5,legacy.axes=T,
+```{r ROCFinal, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
+invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres=0.5,legacy.axes=T,
               print.auc =T,col="red3"))
 ```
 
 
 
-```{r model1_assessment, echo=FALSE}
+### Using Model to predict out-of-sample probabilities
 
-# summary plots for final model
+The confusion matrix of using Final Model to predict out-of-sample probabilities for Year 2013 dataset using 0.5 as the cutoff for inferring developed or developing countries is shown below as Table XXXX. The accuracy is 0.92, which shall be considered as a decent model.
 
-```
 
-```{r ANOVA1, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-anova_1 <- anova(le14_fit_full, le14_fit_1, test="Chisq")
-stargazer(anova_1,
+```{r ConfMat_infer, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+df_life_expectancy_2013_cleaned$pred<- predict(le14_fit_final, df_life_expectancy_2013_cleaned, type="response")
+conf_mat_pred <- confusionMatrix(as.factor(ifelse(df_life_expectancy_2013_cleaned$pred>=0.5, "Developed", "Developing")), df_life_expectancy_2013_cleaned$Status, positive = "Developed" )
+# conf_mat_pred
+conf_mat_pred_t <- matrix(c(13,4,6,107),ncol=2, byrow=TRUE)
+colnames(conf_mat_pred_t) <- c("True Developed","True Developing")
+rownames(conf_mat_pred_t) <- c("Predicted Developed","Predicted Developing")
+stargazer(conf_mat_pred_t,
           summary=FALSE,
           header=FALSE,
           no.space = TRUE,
@@ -345,76 +339,43 @@ stargazer(anova_1,
           column.sep.width = "0.2pt",
           digits = 2,
           font.size = "small",
-          title='Analysis of Deviance: Full Model vs Model 1',
+          title="Confusion Matrix for Infering Year 2013 Data",
           type='latex')
 ```
 
-## Without GDP
-
-### Model 2
-
-
-```{r, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-le14_fit_2 <- glm(Status_num ~ Life.expectancy + BMI + percentage.expenditure + Total.expenditure + HIV.AIDS  + Income.composition.of.resources + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-stargazer(le14_fit_2,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          report = ('vcsp*'),
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Logistic Regression Model',
-          type='latex')
-# summary(le14_fit_2)
-```
-
-```{r, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-vif_table_2 <- vif(le14_fit_2)
-stargazer(vif_table_2,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Variance Inflation Factors',
-          type='latex')
-```
-
-```{r ConfMat_2, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-conf_mat_2 <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_2)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
-# conf_mat_2
-conf_mat_t_2 <- matrix(c(14,5,5,107), ncol=2, byrow=TRUE)
-colnames(conf_mat_t_2) <- c("True Developed","True Developing")
-rownames(conf_mat_t_2) <- c("Predicted Developed","Predicted Developing")
-stargazer(conf_mat_2,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title="Confusion Matrix for Model 2",
-          type='latex')
-```
+$$
+\begin{aligned}
+Accuracy &= \dfrac{TP + TN}{TP + FN + FP + TN}\\
+&= \dfrac{13+107}{13+4+6+107}\\
+&= 0.92
+\end{aligned}
+$$
+$$
+95\%\ Confidence\ Interval\ of\ Accuracy: (0.8631, 0.9625)
+$$
 
 
-```{r ROC3, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_2),plot=T,print.thres=0.5,legacy.axes=T,
+Receiver Operator Characteristic (ROC) curve (Sensitivity vs 1 - Specificity) is shown below, and the Area Under the Curve (AUC) is 0.966. The fact that AUC is so close to 1 confirms that this model does a good job identifying country development status for another year, 2013.
+
+
+
+```{r ROCPred, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
+
+invisible(roc(df_life_expectancy_2013_cleaned$Status_num,df_life_expectancy_2013_cleaned$pred,plot=T,print.thres=0.5,legacy.axes=T,
               print.auc =T,col="red3"))
+
+
 ```
 
+### SURPRISE MOLDE
 
-\newpage
+Out of curiosity, we compare the final model with the model with only one predictor variable, *Std. Income Composition of Resources*, the ANOVA result surprisingly shows that two models are not statistically different in terms of "inference" accuracy.
 
-## Model 1 vs Model 2
+As we can see on Table XXXX: Analysis of Deviance: Final Model vs Model w/ One Predictor Variable, the p-value being 0.41 is greater than 0.05, meaning *Std. Income Composition of Resources* variable by its own is a great indicator of whether the country should be considered as developed or developing country.
 
-```{r ANOVA2, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-anova_2 <- anova(le14_fit_1, le14_fit_2, test="Chisq")
-stargazer(anova_2,
+```{r ANOVA, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
+anova_t <- anova(le14_fit_final, le14_fit_one, test="Chisq")
+stargazer(anova_t,
           summary=FALSE,
           header=FALSE,
           no.space = TRUE,
@@ -422,177 +383,16 @@ stargazer(anova_2,
           column.sep.width = "0.2pt",
           digits = 2,
           font.size = "small",
-          title='Analysis of Deviance: Model 1 (W/O percentage expenditure) vs Model 2 (W/O GDP)',
-          type='latex')
-```
-
-## Full Model vs Model 2
-
-```{r ANOVA3, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-anova_3 <- anova(le14_fit_full, le14_fit_2, test="Chisq")
-stargazer(anova_3,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Analysis of Deviance: Full Model vs Model 2',
-          type='latex')
-```
-
-\newpage
-
-###  Using Model 1 (w/o percentage expenditure) to predict out-of-sample (Year 2013) probabilities
-
-
-```{r ConfusionMatrix4, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-df_life_expectancy_2013_cleaned$predprob_model_1 <- predict(le14_fit_1, df_life_expectancy_2013_cleaned, type="response")
-conf_mat_3 <- confusionMatrix(as.factor(ifelse(df_life_expectancy_2013_cleaned$predprob_model_1>=0.5, "Developed", "Developing")), df_life_expectancy_2013_cleaned$Status, positive = "Developed" )
-# conf_mat_3$table
-# conf_mat_3
-conf_mat_t_3 <- matrix(c(14,6,5,105),ncol=2, byrow=TRUE)
-colnames(conf_mat_t_3) <- c("True Developed","True Developing")
-rownames(conf_mat_t_3) <- c("Predicted Developed","Predicted Developing")
-stargazer(conf_mat_t_3,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title="Confusion Matrix 4",
+          title='Analysis of Deviance: Final Model vs Model w/ One Predictor Variable',
           type='latex')
 ```
 
 
-###  Using Model 2 (w/o GDP) to predict out-of-sampl e(Year 2013) probabilities
 
 
-```{r ConfusionMatrix5, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-df_life_expectancy_2013_cleaned$predprob_model_2 <- predict(le14_fit_2, df_life_expectancy_2013_cleaned, type="response")
-conf_mat_4 <- confusionMatrix(as.factor(ifelse(df_life_expectancy_2013_cleaned$predprob_model_2>=0.5, "Developed", "Developing")), df_life_expectancy_2013_cleaned$Status, positive = "Developed" )
-# conf_mat_4$table
-# conf_mat_4
-conf_mat_t_4 <- matrix(c(14,5,5,106),ncol=2, byrow=TRUE)
-colnames(conf_mat_t_4) <- c("True Developed","True Developing")
-rownames(conf_mat_t_4) <- c("Predicted Developed","Predicted Developing")
-stargazer(conf_mat_t_4,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title="Confusion Matrix 5",
-          type='latex')
-```
 
 
-Model 2 is slightly better, numerical wise. But not statistically different than Model 1
 
-
-\newpage
-
-
-# Tested, not good
-
-## Without Total Expenditure and percentage expenditure.
-
-### Model 3
-
-
-```{r, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-le14_fit_3 <- glm(Status_num ~ Life.expectancy + BMI  + HIV.AIDS  + Income.composition.of.resources + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
-stargazer(le14_fit_3,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          report = ('vcsp*'),
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Logistic Regression Model',
-          type='latex')
-# summary(le14_fit_3)
-```
-
-
-```{r, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-vif_table_3 <- vif(le14_fit_3)
-stargazer(vif_table_3,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Variance Inflation Factors',
-          type='latex')
-```
-
-```{r ConfMat_3, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-conf_mat_3 <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_3)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
-# conf_mat_3
-conf_mat_t_3 <- matrix(c(13,4,6,108), ncol=2, byrow=TRUE)
-colnames(conf_mat_t_3) <- c("True Developed","True Developing")
-rownames(conf_mat_t_3) <- c("Predicted Developed","Predicted Developing")
-stargazer(conf_mat_3,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title="Confusion Matrix for Model 3",
-          type='latex')
-```
-
-
-```{r ROC4, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_3),plot=T,print.thres=0.5,legacy.axes=T,
-              print.auc =T,col="red3"))
-```
-
-
-\newpage
-
-## Model 1 vs Model 3
-
-```{r ANOVA4, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-anova_2 <- anova(le14_fit_1, le14_fit_3, test="Chisq")
-stargazer(anova_2,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Analysis of Deviance: Model 1 vs Model 3',
-          type='latex')
-```
-
-## Full Model vs Model 3
-
-```{r ANOVA5, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-anova_3 <- anova(le14_fit_full, le14_fit_3, test="Chisq")
-stargazer(anova_3,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Analysis of Deviance: Full Model vs Model 3',
-          type='latex')
-```
 
 ### Model Assessment
 
