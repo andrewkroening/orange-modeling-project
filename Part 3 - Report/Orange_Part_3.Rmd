@@ -6,13 +6,21 @@ date: "November 23rd, 2022"
 ---
 ***Report: Your report will be an 8-10 page self-contained document describing your analysis. It should be written as a professional document that can be understood by someone with limited statistics background (e.g., a client). You are also required to submit an RMD file that includes your code for the EDA and analysis. The report should be organized as follows:***
 
-```{r setup, include=FALSE}
+
+intro - 2 pages
+eda - 1 page
+question 1 - 3 pages
+question 2 - 3 pages
+conclusion - 1 page
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list = ls())
 ```
 
 ```{r load_libraries, echo=FALSE, message=FALSE, warning=FALSE}
-packages <- (c("table1", "ggplot2", "xtable", "pander","ggcorrplot", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra", "leaps", "Metrics", "reshape2", "moments", "mice", "cowplot", "caret",  "pROC", "arm"))
+#,  "pROC", "arm"
+packages <- (c("table1", "ggplot2", "xtable", "pander","ggcorrplot", "tidyverse", "stargazer", "ggfortify", "caTools", "car", "corrplot", "gridExtra", "leaps", "Metrics", "reshape2", "moments", "mice", "cowplot", "caret", "AICcmodavg", "GGally"))
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
@@ -22,7 +30,7 @@ if (any(installed_packages == FALSE)) {
 invisible(lapply(packages, library, character.only = TRUE))
 ```
 
-```{r read_data, echo=FALSE, fig.width=10,fig.height=4}
+```{r read_data, echo=FALSE, fig.width=10,fig.height=4, message=FALSE, warning=FALSE}
 df_life_expectancy <- read.csv(file = '../Datasets/Life_Expectancy_Data.csv')
 df_life_expectancy <- data.frame(df_life_expectancy)
 df_life_expectancy$Status <- factor(df_life_expectancy$Status)
@@ -45,17 +53,9 @@ df_life_expectancy_2013$Status_num[df_life_expectancy_2013$Status=="Developed"] 
 df_life_expectancy_2013_cleaned <- na.omit(df_life_expectancy_2013)
 ```
 
-
-```{r clean_data, echo=FALSE, fig.width=10,fig.height=4}
-
-# Moved to the block above, delete for final actions
+```{r clean_data, echo=FALSE, fig.width=10,fig.height=4, message=FALSE, warning=FALSE}
 
 # data <- subset(data, select = -c(Country, Year))
-
-# set factor variables
-# df_life_expectancy_2014$Status <- as.factor(df_life_expectancy_2014$Status)
-# df_life_expectancy_2014$Year <- as.factor(df_life_expectancy_2014$Year)
-# df_life_expectancy_2014$Country <- as.factor(df_life_expectancy_2014$Country)
 ```
 
 # Abstract 
@@ -70,6 +70,8 @@ This analysis uses data from the WHO to better understand the drivers of life ex
 
 The particular dataset for this analysis contains national-level observations of variables related to life expectancy around the globe for a period spanning the early portion of the 21st century. The complete dataset includes observations beginning in the year 2000 and ending in the year 2015. As a full dataset, there are 2,938 observations for 22 variables. Practically, each country has approximately one observation each year, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering significant disease, economic, and social factors. Below are the questions we aim to answer in this analysis:
 
+(Cite data here)
+
 ### Question #1 (Prediction)
 
 *"How did major disease, economic, and social factors impact life expectancy around the globe in 2014?"*
@@ -77,15 +79,6 @@ The particular dataset for this analysis contains national-level observations of
 ### Question #2 (Inference)
 
 *"How did disease and mortality rates, along with national economic factors, contribute to a country's development status in 2014?"*
-
-# Methods
-
-***Describe the process you used to conduct analysis. This includes EDA and any relevant data cleaning information (e.g., did you exclude missing values? If so, how many? Did you collapse categories for any variables?) Then describe the models you fit, and any changes you made to improve model fit (e.g., did you exclude any influential points? Did you do have to address multicollinearity issues? Did you transform any variables?). Also describe model diagnostics. The organization of this section may depend on your particular dataset/analysis, but you may want to break it into subsections such as “Data,” “Models,” and “Model assessment.” Note that you do not present any results in this section.***
-
-
-The general methodology of our analysis centered around the ability to draw insights from the dataset without significant transformations or imputations. To accomplish this objective, the team began with exploratory data analysis (EDA) to examine the distributions of key variables. From the EDA, missing data points were identified, and decisions made for courses of action to cope with those non-values. At conclusion of data preparation, we subset for the year 2014, our focal point for this analysis, and the year 2013 as a testing validation dataset used in our second research question.
-
-We then proceed to model fitting. [High-level how we do this.] Finally, we obtain diagnostic information about the performance of our models.
 
 ### Data
 
@@ -97,9 +90,20 @@ An alternative approach for missing data was identified as theoretically feasibl
 
 After the initial treatments to factor variables, our dataset is reduced to complete cases only and subset for the two years of interest in our analysis. We ultimately decide to preserve the original integrity of the data and bypass any available imputation methods. While there are certainly options available, the team assesses that the potential gain from the inclusion of the additional countries does not offset the possible bias or skew introduced from imputation. At the conclusion of these steps and decisions, we subset the data to make two sub-datasets: one for the year 2014 and one for the year 2013 which we will use in our second research question. These two datasets are nearly ideintical in size, with the 2014 dataset consisting of 131 observations, and the 2013 dataset having 130.
 
-After some simple steps to prepare the data, the team began its EDA. [EDA plots and findings - need to truncate this and decide what's actually important to what we are trying to say]
+# Methods
 
-```{r handling_missing_data, echo=FALSE}
+***Describe the process you used to conduct analysis. This includes EDA and any relevant data cleaning information (e.g., did you exclude missing values? If so, how many? Did you collapse categories for any variables?) Then describe the models you fit, and any changes you made to improve model fit (e.g., did you exclude any influential points? Did you do have to address multicollinearity issues? Did you transform any variables?). Also describe model diagnostics. The organization of this section may depend on your particular dataset/analysis, but you may want to break it into subsections such as “Data,” “Models,” and “Model assessment.” Note that you do not present any results in this section.***
+
+(The general methodology of our analysis centered around the ability to draw insights from the dataset without significant transformations or imputations. - do we need this?) To analyse this data / accomplish this objective, the team began with a priori variable selection, after which we conducted exploratory data analysis (EDA) to examine the distributions of key variables. 
+
+(A Priori variable selection)
+These are the variables we selected as part of our initial a priori variable selection which included selecting the variables whose relationship with Life expectancy we were interested in:
+Status + Population + Life.expectancy + Measles + Polio + HIV.AIDS + GDP + Income.composition.of.resources + BMI + Total.expenditure + percentage.expenditure + Schooling
+
+(Dealing with missing data)
+From the EDA, missing data points were identified. Since imputing the missing values using mean or regression methods is not valid in this context where each value is for a country and using these methods may create an estimate significantly distant from the true value, we considered finding the missing data from other sources. We tried sources like (). Here we discovered that the data points for factors we had differed in these alternate datasets. Since the data collection time and methods may have been different for these sources, we did not use this method to impute the missing data. In the end we decided to drop the 52 rows with null values. At conclusion of data preparation, we subset for the year 2014, our focal point for this analysis, and the year 2013 as a testing validation dataset used in our second research question.
+
+```{r handling_missing_data, echo=FALSE, message=FALSE, warning=FALSE}
 # TODO: should we remove rows with 0 in percentage expenditure? can percentage expenditure be 0?
 
 # complete case analysis - 183 to 131 rows
@@ -111,7 +115,91 @@ df_life_expectancy_2014 <- df_life_expectancy_cc_2014
 # multiple imputation
 ```
 
-[Does Table 1 have everything we want in it???]
+(Correlation and multicollinearity)
+While conducting EDA, we found that a few of the variables in our data were highly correlated. To analyse this correlation, we used a correlation plot and VIF. We found that these variables were highly correlated:
+
+1. Infant deaths and Under five deaths
+2. Percentage expenditure and GDP
+3. Hepatitis B and Diphtheria
+4. Thinness variables ()
+5. Schooling and Income composition of resources
+
+Since percentage expenditure is highly correlated with GDP and schooling is highly correlated with income composition of resources, we dropped percentage expenditure and schooling from our initial list of apriori variables.
+
+```{r correlation_check, echo=FALSE, fig.height=5, message=FALSE, warning=FALSE}
+df_life_expectancy_2014_cor <- subset(df_life_expectancy_2014, select = -c(Country, Status, Year, Status_num))
+# corrplot(cor(df_life_expectancy_2014_cor), method = "color")
+
+mod.linear <- lm(Life.expectancy ~ ., data = subset(df_life_expectancy_2014_cor))
+vifs <- data.frame(vif(mod.linear))
+# ggplot(vifs, aes(y=vif.mod.linear., x=row.names(vifs))) +
+#   geom_bar(aes(fill=vif.mod.linear.<5),stat="identity")+
+#   scale_y_continuous(trans = "sqrt",  breaks = c(5, 10, 50, 100))+
+#   geom_hline(yintercept = 5, colour = "red") +
+#   ggtitle("VIF per feature") +
+#   xlab("Featurs") + ylab("VIF") +
+#   theme(axis.text.x=element_text(angle=20, hjust=1))+
+#   theme(text = element_text(size = 18))+
+#   scale_fill_brewer(palette="Dark2")
+
+# infant deaths, under five deaths
+# percentage expenditure, GDP
+# Hepatitis B, Diphtheria
+# thinness variables
+# schooling, income composition of resources
+
+# after checking for collinearity, removed schooling and percentage expenditure
+
+# apriori variables
+# Status + Population + Life.expectancy + Measles + Polio + HIV.AIDS + GDP + Income.composition.of.resources + BMI + Total.expenditure
+```
+
+(EDA interpretation)
+
+```{r eda1, echo=FALSE, results="asis", message=FALSE, warning=FALSE}
+# scatterplot matrix
+# ggpairs(subset(df_life_expectancy_cc_2014, select = c(Life.expectancy, GDP, Population, percentage.expenditure, Hepatitis.B, Measles, Polio, HIV.AIDS, Diphtheria, Schooling, Income.composition.of.resources)))
+
+# boxplot matrix
+life_expectancy_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Life.expectancy, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+gdp_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=GDP, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+
+population_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Population, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+percentage_expenditure_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=percentage.expenditure, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+hepatitis_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Hepatitis.B, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+measles_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Measles, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+polio_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Polio, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+hiv_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=HIV.AIDS, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+diphtheria_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Diphtheria, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+schooling_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Schooling, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+income_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Income.composition.of.resources, x=Status, fill=Status)) + 
+    geom_boxplot() + theme(axis.text=element_text(size=8),
+    axis.title=element_text(size=8,face="bold"), legend.position = "none")
+
+
+#gender_plot <- ggplot(airline,aes(Gender, Age))+geom_boxplot(aes(fill=Satisfaction))
+plot_grid(life_expectancy_plot, gdp_plot, population_plot, percentage_expenditure_plot, hepatitis_plot, measles_plot, polio_plot, hiv_plot, diphtheria_plot, schooling_plot, income_plot, ncol=3)
+```
 
 ```{r table_one, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 df_life_expectancy_14_subset <- subset(df_life_expectancy_2014,select = c(Status, Population, Life.expectancy, percentage.expenditure, Measles, Polio, HIV.AIDS, GDP, Schooling, Income.composition.of.resources, BMI, Total.expenditure))# select variables
@@ -124,38 +212,37 @@ stargazer(df_life_expectancy_14_subset,type = "latex", no.space = TRUE,
 
 [Describe Table 1 - feels like we should add more variables]
 
+## Models
 
+### Question 1
 
-### Models
+We then proceeded to model fitting. To answer the first research question, we fit a simple linear regression model with life expectancy as our response variable. We fit three models to study the relationship between the independent variables and life expectancy, including only our a priori variables, including all variables in the data and using backward stepwise selection. To find the best fit parsimonious model, we evaluated the models using adjusted R^2 and BIC. In our final model, we included the variables selected by backward stepwise selection and our a priori variables but excluded the variables with high collinearity that we discovered during EDA.
 
-[The model used for the first research question, the prediction question, is linear regression]
+Finally, we obtain diagnostic information about the performance of our models.
 
-[Describe how we fit the model and the process]
-
-```{r model1, echo=FALSE}
+```{r model1, echo=FALSE, results="asis", message=FALSE, warning=FALSE}
 # model with a priori variables
-mlrmod <- lm(Life.expectancy ~ Status + Population + Life.expectancy + percentage.expenditure + Measles + Polio + HIV.AIDS + GDP + Schooling + Income.composition.of.resources + BMI + Total.expenditure, data = df_life_expectancy_2014)
-summary(mlrmod)
+# HIV, Income composition of resources, Total expenditure
+mlrmod <- lm(Life.expectancy ~ Status + Population + Life.expectancy + Measles + Polio + HIV.AIDS + GDP + Income.composition.of.resources + BMI + Total.expenditure, data = df_life_expectancy_2014)
+# summary(mlrmod)
 
-lm1 <- lm(Life.expectancy ~ ., data = subset(df_life_expectancy_cc_2014, select = -c(Country, Year)))
-summary(lm1)
+# Adult mortality, total expenditure, HIV, Income composition of resources
+lm1 <- lm(Life.expectancy ~ ., data = subset(df_life_expectancy_2014, select = -c(Country, Year)))
+# summary(lm1)
 
+# Same as above
 m <- step(lm1, trace=FALSE, direction = 'backward')
-summary(m)
+# summary(m)
 
-# final model
-# final_model <- lm(formula = birth_weight ~ prev_preg + mrace + mht + mprepregwt + smoke + mrace*smoke, data = df)
-# options(xtable.comment = FALSE)
-# xtable(summary((final_model)), header=FALSE)
-# stargazer(confint(final_model, level=0.95), header=FALSE)
+models <- list(mlrmod, lm1, m)
+mod.names <- c('apriori', 'all', 'backwardstepwise')
+aictab(cand.set = models, modnames = mod.names)
 
-par(mfrow = c(2,2))
-plot(mlrmod)
-plot(lm1)
-plot(m)
+final_model <- lm(Life.expectancy ~ Status + Status + Population + Life.expectancy + Measles + Polio + HIV.AIDS + GDP + Income.composition.of.resources + BMI + Total.expenditure + Adult.Mortality, data = df_life_expectancy_2014)
+xtable(summary(final_model))
 ```
 
-```{r model1_backward, echo=FALSE}
+```{r model1_backward, echo=FALSE, message=FALSE, warning=FALSE}
 # (?)
 regfit.best <- regsubsets(Life.expectancy ~ ., data = subset(df_life_expectancy_cc_2014, select = -c(Country, Year)), nvmax = 16)
 reg.summary <- summary(regfit.best)
@@ -170,15 +257,25 @@ which.min(reg.summary$bic)
 # points(12,reg.summary$bic[12],col="red",cex=2,pch=20)
 
 # backward stepwise
-regfit.bwd <- regsubsets(Life.expectancy~.,data=subset(df_life_expectancy_cc_2014, select = -c(Country, Year)),nvmax=16,method="backward")
-bwd.summary <- summary(regfit.bwd)
-
-# bwd.summary
-plot(bwd.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
-which.min(bwd.summary$bic)
+# regfit.bwd <- regsubsets(Life.expectancy~.,data=subset(df_life_expectancy_cc_2014, select = -c(Country, Year)),nvmax=16,method="backward")
+# bwd.summary <- summary(regfit.bwd)
+# 
+# # bwd.summary
+# plot(bwd.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
+# which.min(bwd.summary$bic)
 # points(12,bwd.summary$bic[12],col="red",cex=2,pch=20)
 ```
 
+## Model Assessment
+
+To check if the model that we selected follows the linear regression assumptions, we will plot the model summary plots and also interpret the F-statistic in the model results.
+
+```{r model_assessment, echo=FALSE, message=FALSE, warning=FALSE}
+par(mfrow = c(2,2))
+plot(final_model)
+```
+
+### Question 2
 
 [The second question, the inferential one, will be approached with a logistic regression model]
 
@@ -468,7 +565,7 @@ Model 2 is slightly better, numerical wise. But not statistically different than
 \newpage
 
 
-# Tested, not good
+### Tested, not good
 
 ## Without Total Expenditure and percentage expenditure.
 
@@ -570,23 +667,37 @@ stargazer(anova_3,
 
 [How did we assess the validity of the logistic model?]
 
-# Results: 
+# Results 
 
 ***Here you should present results for all aspects of the analysis. The structure of this section should mirror the structure of the methods section. For example, you can start with a few key EDA results (e.g., a table of descriptive statistics), then present model results, then address assessment. This is the section where you will primarily refer to tables and figures. You should have at least 1 figure for each research question that illustrates a key result of the analysis.***
 
 [General insights. Were the models effective, set the stage for the discussion below]
 
-### Question 1: *"How did major disease, economic, and social factors impact life expectancy around the globe in 2014?"*
+## Question 1: *"How did major disease, economic, and social factors impact life expectancy around the globe in 2014?"*
 
-#### Model Results
+## Model Results / Interpretation
 
 [What does the model output tell us]
 
-#### Assessment
+From the evaluation of the three models, (state adjusted R^2 and BIC values).
+
+(model interpretation)
+
+## Model Assessment
 
 [Assess the validity of the outputs]
 
-### Questions 2: *"How did disease and mortality rates, along with national economic factors, contribute to a country's development status in 2014?"*
+We can see from the model summary plots that the linear regression assumptions for the model are met.
+
+1. **Check for linearity:** The residuals vs. fitted plot is used to check the assumption that the variables have a linear relationship. The mean line is almost horizontal with no distinct pattern or trend in the data, which is an indication of a linear relationship.
+2. **Check for homoscedasticity of residuals or equal variance of errors:** To check for this assumption, we must study plots 1 and 4, that show how the residuals vary as the fitted values increase. Residuals are the unexplained variance. While they are not the same as model error, they are calculated from it, so seeing a bias in the residuals would indicate a bias in the error. In plot 1, the mean line is close to horizontal, with no visible trend. In plot 4, there is no visible trend due to high influence points. The model does not break the assumption of equal variance of errors. 
+3. **Check for normal distribution of residuals:** The normal Q-Q plot is used to examine if the residuals are normally distributed. If the real residuals from the model match the theoretical residuals from a perfect model, the plot will be a straight line. Since the plot is close to the straight line, we can accept the assumption that the residuals are normally distributed.
+
+From the model summary plots, we can also see that there are no leverage points that we need to be concerned about.
+
+From the model summary, we can see that the F-statistic is a very small value, less than 0.05, which can be interpreted as ().
+
+## Question 2: *"How did disease and mortality rates, along with national economic factors, contribute to a country's development status in 2014?"*
 
 #### Model Results
 
