@@ -155,6 +155,7 @@ vifs <- data.frame(vif(mod.linear))
 ```
 
 (EDA interpretation)
+As mentioned before, this dataset has 22 variables. The categorical variable in our table is status. To understand their relation, we need to check the boxplots of life expectancy over the two categories developed and developing. We can check the boxplots to find that the life expectancy in Developed countries is higher, which means the categorical variable might be a good predictor for the model. For continuous variables, by name only, we expected the first phase and selected the ones we were interested in. Here we can find statistical evidence by checking correlation and collinearity. Based on the correlation matrix and Variance Inflation Factor (VIF).First,schooling, income, thinness, gdp and hiv all find possible linear relationships, which is also consistent with the initial prediction of the variables of interest. Then,we have to drop correlated pairs to show significantly high VIFs, and we have data shown in table 1. Our Ready data has 131 rows of observations. Including 12 variables, one categorical and 11 continuous variables, their detailed information, like mean standard diviation min and max values, can be found in table 1.Almost all of the data have significant differences between the minimum and maximum values, suggesting that the country has a significant prior wealth gap, population gap, etc. The population, GDP, and Measles all have large std, and the mean is exceptionally close to the maximum, which may lead to skewed data. We may need to check the assumptions to exclude the effect of this situation on the model.This is our data ready for model selection.
 
 ```{r eda1, echo=FALSE, results="asis", message=FALSE, warning=FALSE}
 # scatterplot matrix
@@ -238,7 +239,7 @@ models <- list(mlrmod, lm1, m)
 mod.names <- c('apriori', 'all', 'backwardstepwise')
 aictab(cand.set = models, modnames = mod.names)
 
-final_model <- lm(Life.expectancy ~ Status + Status + Population + Life.expectancy + Measles + Polio + HIV.AIDS + GDP + Income.composition.of.resources + BMI + Total.expenditure + Adult.Mortality, data = df_life_expectancy_2014)
+final_model <- lm(Life.expectancy ~ Status +Population + Measles + Polio + HIV.AIDS + GDP + Income.composition.of.resources + BMI + Total.expenditure + Adult.Mortality, data = df_life_expectancy_2014)
 xtable(summary(final_model))
 ```
 
@@ -274,7 +275,30 @@ To check if the model that we selected follows the linear regression assumptions
 par(mfrow = c(2,2))
 plot(final_model)
 ```
+(interprtation for check assumptions)
+The linearity assumptions are met throughout the model. We can note that all linear regression assumptions are roughly satisfied.
+- Residuals and Fitted Plots
+There is no pattern in the residual plot. We can assume a linear relationship between the predictors and the outcome variables. (Linearity assumption)
+- Scale-Location Plot
+The residuals are equally distributed over the range of predictors. (Homogeneity assumption)
+Normal Q-Q plot
+All points are distributed along the reference line; again, it is good to assume that the data have the normality of the residuals. (Normality of residuals assumption)
+Relationship between residuals and leverage
+Any point at 0.5 kitchen distance from the boundary is influential. However, there is no significant point here. (Linearity assumption)
 
+(model interpretation)
+We devised the final model based on the three linear models 'apriori', 'all,' and 'backward stepwise.' The variables that have a crucial impact on population longevity are status, population, Measles, Polio, and HIV.AIDS, GDP, Income.composition.of.resources, BMI, Total.expenditure, Adult.Mortality  
+. According to the statistics, the first information is the residual summary statistics, and we can see that the median should be close to 0, i.e., the mean of the residuals. 3Q and 1Q should be quantitatively close to each other and symmetrically distributed, and the errors follow a Gaussian distribution.
+For the second observation, Estimate, all coefficients are very small, and we may make the coefficients easier to observe by adjusting the unit size. Total.expenditure, HIV.AIDS, Income.composition.of.resources, StatusDeveloping
+The larger absolute values of the coefficients for these four variables indicate that a one-unit change in these four variables would have a more severe effect on average life expectancy than the other variables, other things being equal.
+Judging the p-values of these variables according to our setting of a=0.05 revealed that among them, Income.composition.of.resources, HIV.AIDS 
+and Adult. Mortality is much less than 0.05 and has a very significant effect on life expectancy. Total. expenditure is close to 0.05 and is also a very important influence and somehow significant.
+Finally, we can observe that by looking at R-squared: 0.8758, Adjusted R-squared 0.8654 
+Our final model matches the data to a degree of 87%. In summary, our final model using ten variables has 87% accuracy in meeting all assumptions, where the most critical influences on mean life expectancy are these four variables:
+- HIV.AIDS (-8.647e-01)
+- Income.composition.of.resources (3.462e+01) 
+- Total.expenditure(3.286e-01) 
+- Adult.mortality(-1.794e-02) ranked in order.
 ### Question 2
 
 [The second question, the inferential one, will be approached with a logistic regression model]
