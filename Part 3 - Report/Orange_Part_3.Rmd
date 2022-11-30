@@ -50,9 +50,30 @@ df_life_expectancy_2014_cleaned$Income.composition.of.resources <- df_life_expec
 df_life_expectancy_2013 <- df_life_expectancy[df_life_expectancy$Year == 2013, ]
 df_life_expectancy_2013$Status_num <- rep(0,nrow(df_life_expectancy_2013))
 df_life_expectancy_2013$Status_num[df_life_expectancy_2013$Status=="Developed"] <- 1
-df_life_expectancy_2013_cleaned <- na.omit(df_life_expectancy_2013)
-df_life_expectancy_2013_cleaned$Income.composition.of.resources <- df_life_expectancy_2013_cleaned$Income.composition.of.resources * 100 
+df_2013_cleaned <- na.omit(df_life_expectancy_2013)
+df_2013_cleaned$Income.composition.of.resources <- df_2013_cleaned$Income.composition.of.resources * 100 
 ```
+
+
+```{r ingest}
+df_pop <- read_csv(file = '../Datasets/pop.csv', skip = 4)
+df_pop_2014 <- df_pop[,c("Country", "2014")]
+df_2014 <- merge(df_life_expectancy_2014, df_pop_2014, by = "Country")
+df_2014$pop_10k <- df_2014$Population * 10000  
+df_2014$pop_diff <- df_2014$pop_10k - df_2014$pop
+df_2014_cleaned <- na.omit(df_2014)
+names(df_2014_cleaned)[names(df_2014_cleaned)=="2014"] <- "pop"
+
+# Testing 
+df_pop_2013 <- df_pop[,c("Country", "2013")]
+df_2013 <- merge(df_life_expectancy_2013, df_pop_2013, by = "Country")
+# df_2013$pop_10k <- df_2013$Population * 10000  
+# df_2013$pop_diff <- df_2013$pop_10k - df_2014$pop
+df_2013_cleaned <- na.omit(df_2013)
+names(df_2013_cleaned)[names(df_2013_cleaned)=="2013"] <- "pop"
+
+```
+
 
 # Abstract 
 
@@ -302,26 +323,31 @@ Our final model matches the data to a degree of 87%. In summary, our final model
 
 Table XXXX: Logistic Regression Models (below) shows the output of 8 predictor variables regressed onto country development status in four models. From left to right those models are: 
 
-1. the intial full model
+1. the initial full model
 
 2. a model with Health Expenditure/GDP per capita dropped for multicolinearity concerns
 
-3. the final model fit after all logistic transformations
+3. the potential model fit after all logistic transformations with Income Composition of Resources included
 
-4. an additional model the team fit using only one predictor: Standardized Income Composition of Resources as a trial
+4. the final model fit after all logistic transformations
 
-From the model output we observe that only one predictor variable has a p-value less than 0.05 denoting it as a significant predictor: Standardized Income Composition of Resources. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as a developed country is: while holding all other predictor variables constant, a one percentage point increase in *Std. Income Composition of Resources* will increase the odds of that country being identified as developed country by about 1.55 times ($e^{0.44}$).
+From the model output we observe that only one predictor variable has a p-value less than 0.05 denoting it as a significant predictor: *Years of Schooling*. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as a developed country is: while holding all other predictor variables constant, a one year increase in *Years of Schooling* make it 2.39 ($e^{1.05}$) times more likely that country being identified as developed country.
 
 ```{r logistic, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE}
-le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(pop)   + Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
 
-le14_fit_semi_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+le14_fit_semi_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(pop)   + Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
 
-le14_fit_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + log(GDP) + Income.composition.of.resources + log(Population)   + Schooling , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+le14_fit_hdi <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + log(GDP) + Income.composition.of.resources + log(pop)   + Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
 
-le14_fit_one <- glm(Status_num ~ Income.composition.of.resources , data = df_life_expectancy_2014_cleaned, family=binomial(link="logit"))
+le14_fit_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + log(GDP) + log(pop)   + Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
 
-stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_final, le14_fit_one,
+le14_fit_final_1 <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + log(GDP) + log(pop)   + Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
+
+le14_fit_one <- glm(Status_num ~ Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
+
+# stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_hdi, le14_fit_final,
+stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_hdi, le14_fit_final,
           dep.var.labels="Development Status",
           header=FALSE,
           no.space = TRUE,
@@ -337,8 +363,9 @@ stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_final, le14_fit_one,
 
 ```
 
-The fitted logistic regression with *Life Expectancy*,*Health Expenditure/GDP per capita*, *BMI*, *Health Gov. Expenditure Percentage*, *HIV/AIDS Deaths/1000 live births*,*Log of GDP per capita*, *Log of Population*, *Std. Income Composition of Resources*, *Years of Schooling* as predictors for the dataset is:
+~~The fitted logistic regression with *Life Expectancy*,*Health Expenditure/GDP per capita*, *BMI*, *Health Gov. Expenditure Percentage*, *HIV/AIDS Deaths/1000 live births*,*Log of GDP per capita*, *Log of Population*, *Std. Income Composition of Resources*, *Years of Schooling* as predictors for the dataset is:~~
 
+[DELETE]
 $$
 \begin{aligned}
 \widehat{ln(\dfrac{Developed}{Developing})}=-8.88&-0.14\ Life\ Expectancy-0.03\ BMI+0.27\ Health\ Gov.\ Expenditure\ Percentage\\
@@ -348,15 +375,17 @@ $$
 \end{aligned}
 $$
 
-We also examine multicolinearity concerns for the first three model fits. From the table below it is clearly observable that the first model has signficant conerns, with two variables scoring a VIF of over 10. After we remove one variable, all subsequent models are satisfactory, with no variables scoring high on this test.
+
+We also examine multicolinearity concerns for all four model fits. From the table below it is clearly observable that the first model has significant concerns, with two variables scoring a VIF of over 10. After we remove one variable, all subsequent models are satisfactory, with no variables scoring high on this test.
 
 ```{r multicol test, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 vif_table_full <- vif(le14_fit_full)
 vif_table_semi_final <- vif(le14_fit_semi_final)
+vif_table_hdi <- vif(le14_fit_hdi)
 vif_table_final <- vif(le14_fit_final)
-vif_table_summary <- dplyr::bind_rows(vif_table_full, vif_table_semi_final, vif_table_final)
+vif_table_summary <- dplyr::bind_rows(vif_table_full, vif_table_semi_final,vif_table_hdi, vif_table_final)
 colnames(vif_table_summary) <- c("Life Expectancy","Health Expenditure/GDP per capita", "BMI", "Health Gov. Expenditure Percentage", "HIV/AIDS Deaths/1000 live births", "GDP per capita","Std. Income composition of resources", "Log of Population" , "Years of Schooling", "Log of GDP per capita")
-rownames(vif_table_summary) <- c("(1)", "(2)", "(3)")
+rownames(vif_table_summary) <- c("(1)", "(2)", "(3)", "(4)")
 stargazer(vif_table_summary,
           summary=FALSE,
           header=FALSE,
@@ -374,12 +403,12 @@ stargazer(vif_table_summary,
 
 #### Assessment
 
-To assess the accuracy of the final model fit for this research question we use the model to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive (TP), True Negative (TN), False Negative (FN), and False Positive (FP) rates by comparing predicted values and actual values. For prediction, we use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 94\%.
+Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realized the interpretation of *Income Composition of Resources* variable might be troublesome. It recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1), however the meaning behind it is confusing.We decided to adjust the model to omit *Income Composition of Resources* variable, and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive (TP), True Negative (TN), False Negative (FN), and False Positive (FP) rates by comparing predicted values and actual values. For prediction, we use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%.
 
 ```{r ConfMat, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_final)>=0.5, "Developed", "Developing")), df_life_expectancy_2014_cleaned$Status, positive = "Developed" )
+conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_final)>=0.5, "Developed", "Developing")), df_2014_cleaned$Status, positive = "Developed" )
 # conf_mat
-conf_mat_t <- matrix(c(15,4,4,108), ncol=2, byrow=TRUE)
+conf_mat_t <- matrix(c(11,5,8,105), ncol=2, byrow=TRUE)
 colnames(conf_mat_t) <- c("True Developed","True Developing")
 rownames(conf_mat_t) <- c("Predicted Developed","Predicted Developing")
 stargazer(conf_mat_t,
@@ -397,18 +426,20 @@ stargazer(conf_mat_t,
 $$
 \begin{aligned}
 Accuracy &= \dfrac{TP + TN}{TP + FN + FP + TN}\\
-&= \dfrac{15+108}{15+4+4+108}\\
-&= 0.94
+&= \dfrac{11+105}{11+5+8+105}\\
+&= 0.90
 \end{aligned}
 $$
 $$
-95\%\ Confidence\ Interval\ of\ Accuracy: (0.88, 0.97)
+95\%\ Confidence\ Interval\ of\ Accuracy: (0.83, 0.95)
 $$
 
-A useful tool for measuring our predictions is the Receiver Operator Characteristic (ROC) curve with the axiis as Sensitivity (true positive rate) and 1 - Specificity (true negative rate). We we set the prediction cut-off at 0.5, we can see that the area under the curve is 0.975, a very strong number. This particular curve is very close to a right angle, and does prompt questions about whether or not a prediction value cut-off of 0.5 is indeed the best value. We leave the value as described because the small number of countries desginated as developing in our dataset means that each missed prediction carries greater weight in this group. We observed 4 false positives and false negatives in our matrix, and are satisfied with this result. 
+A useful tool for measuring our predictions is the Receiver Operator Characteristic (ROC) curve with the axis as Sensitivity (true positive rate) and 1 - Specificity (true negative rate). We we set the prediction cut-off at 0.232, we can see that the area under the curve is 0.959, a very strong number. ~~This particular curve is very close to a right angle, and does prompt questions about whether or not a prediction value cut-off of 0.5 is indeed the best value.~~ We leave the value as described because the small number of countries designated as developing in our dataset means that each missed prediction carries greater weight in this group. We observed 5 false positives and 8 false negatives in our matrix, and are satisfied with this result. 
 
 ```{r ROCFinal, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres=0.5,legacy.axes=T,
+# invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres=0.5,legacy.axes=T,
+#               print.auc =T,col="red3"))
+invisible(roc(df_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres="best",legacy.axes=T,
               print.auc =T,col="red3"))
 ```
 
@@ -416,14 +447,14 @@ invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_final),
 
 #### Out-of-Sample Predictions
 
-A final validation step for this model was to predict out-of-sample probabilities for the Year 2013 dataset using 0.5 as the cutoff for inferring developed or developing status. The result of this experiment is shown in the table below. The accuracy of these predictions is 0.92, which is a slight drop-off in accuracy, but still considered a good fit.
+A final validation step for this model was to predict out-of-sample probabilities for the Year 2013 dataset using 0.232 as the cutoff for inferring developed or developing status. The result of this experiment is shown in the table below. The accuracy of these predictions is still 0.91, which is the accuracy as our training data set, and should be considered a pretty good fit.
 
 
-```{r ConfMat_infer, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-df_life_expectancy_2013_cleaned$pred<- predict(le14_fit_final, df_life_expectancy_2013_cleaned, type="response")
-conf_mat_pred <- confusionMatrix(as.factor(ifelse(df_life_expectancy_2013_cleaned$pred>=0.5, "Developed", "Developing")), df_life_expectancy_2013_cleaned$Status, positive = "Developed" )
+```{r ConfMat_infer, include=FALSE,results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+df_2013_cleaned$pred<- predict(le14_fit_final, df_2013_cleaned, type="response")
+conf_mat_pred <- confusionMatrix(as.factor(ifelse(df_2013_cleaned$pred>=0.232, "Developed", "Developing")), df_2013_cleaned$Status, positive = "Developed" )
 # conf_mat_pred
-conf_mat_pred_t <- matrix(c(13,4,6,107),ncol=2, byrow=TRUE)
+conf_mat_pred_t <- matrix(c(16,9,3,100),ncol=2, byrow=TRUE)
 colnames(conf_mat_pred_t) <- c("True Developed","True Developing")
 rownames(conf_mat_pred_t) <- c("Predicted Developed","Predicted Developing")
 stargazer(conf_mat_pred_t,
@@ -441,23 +472,23 @@ stargazer(conf_mat_pred_t,
 $$
 \begin{aligned}
 Accuracy &= \dfrac{TP + TN}{TP + FN + FP + TN}\\
-&= \dfrac{13+107}{13+4+6+107}\\
-&= 0.92
+&= \dfrac{16+100}{16+9+3+100}\\
+&= 0.91
 \end{aligned}
 $$
 $$
-95\%\ Confidence\ Interval\ of\ Accuracy: (0.8631, 0.9625)
+95\%\ Confidence\ Interval\ of\ Accuracy: (0.8420, 0.9506)
 $$
 
 
-```{r ROCPred, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE, eval=FALSE}
+```{r ROCPred,include=FALSE, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE, eval=FALSE}
 
 # Cut to save space
 
 #Receiver Operator Characteristic (ROC) curve (Sensitivity vs 1 - Specificity) is shown below, and the Area Under the Curve (AUC) is 0.966. The fact that AUC is so close to 1 confirms that this model does a good job identifying country development status for another year, 2013.
 
 
-invisible(roc(df_life_expectancy_2013_cleaned$Status_num,df_life_expectancy_2013_cleaned$pred,plot=T,print.thres=0.5,legacy.axes=T,
+invisible(roc(df_2013_cleaned$Status_num,df_2013_cleaned$pred,plot=T,print.thres=0.232,legacy.axes=T,
               print.auc =T,col="red3"))
 
 
@@ -465,7 +496,7 @@ invisible(roc(df_life_expectancy_2013_cleaned$Status_num,df_life_expectancy_2013
 
 #### Final Model Evaluation
 
-Out of curiosity, we compare the final model with a model with only one predictor variable, *Standardized Income Composition of Resources*. An ANOVA result surprisingly shows that two models are not statistically different in terms of "inference" accuracy. As we can see in the table below (Analysis of Deviance: Final Model vs Model w/ One Predictor Variable), the p-value being 0.41 is greater than 0.05, meaning *Std. Income Composition of Resources* variable by its own is a great indicator of whether the country should be considered as developed or developing country.
+Out of curiosity, we compare the final model with a model with only one predictor variable, *Years of Schooling*. An ANOVA result surprisingly shows that two models are not statistically different in terms of "inference" accuracy. As we can see in the table below (Analysis of Deviance: Final Model vs Model w/ One Predictor Variable), the p-value being 0.07 is greater than 0.05, meaning *Years of Schooling* variable by its own is a great indicator of whether the country should be considered as developed or developing country.
 
 ```{r ANOVA, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 anova_t <- anova(le14_fit_final, le14_fit_one, test="Chisq")
