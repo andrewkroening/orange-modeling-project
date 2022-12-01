@@ -392,7 +392,7 @@ stargazer(vif_table_summary,
 
 #### Assessment
 
-Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realize the interpretation of *Income Composition of Resources* variable might be troublesome. It recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1), however the meaning behind it is confusing. We decided to adjust the model to omit *Income Composition of Resources* variable, and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive (TP), True Negative (TN), False Negative (FN), and False Positive (FP) rates by comparing predicted values and actual values. For prediction, we first use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%.
+Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realize the interpretation of *Income Composition of Resources* variable might be troublesome. It recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1), however the meaning behind it is confusing. We decided to adjust the model to omit *Income Composition of Resources* variable, and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive (TP), True Negative (TN), False Negative (FN), and False Positive (FP) rates by comparing predicted values and actual values. For prediction, we first use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%, with 95% Confidence Interval of within 83% ~ 95%.
 
 ```{r ConfMat, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_final)>=0.5, "Developed", "Developing")), df_2014_cleaned$Status, positive = "Developed" )
@@ -412,16 +412,6 @@ stargazer(conf_mat_t,
           type='latex')
 ```
 
-$$
-\begin{aligned}
-Accuracy &= \dfrac{TP + TN}{TP + FN + FP + TN}\\
-&= \dfrac{11+105}{11+5+8+105}\\
-&= 0.90
-\end{aligned}
-$$
-$$
-95\%\ Confidence\ Interval\ of\ Accuracy: (0.83, 0.95)
-$$
 
 A useful tool for measuring our predictions is the Receiver Operator Characteristic (ROC) curve with the axis as Sensitivity (true positive rate) and 1 - Specificity (true negative rate). We find out the optimal prediction cut-off for year 2014 dataset is 0.232, and we can see that the area under the curve is 0.959, a very strong number. We leave the value as described because the small number of countries designated as developing in our dataset means that each missed prediction carries greater weight in this group. We observed 5 false positives and 8 false negatives in our matrix, and are satisfied with this result. 
 
@@ -433,13 +423,12 @@ invisible(roc(df_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thr
 ```
 
 
-
 #### Out-of-Sample Predictions
 
-A final validation step for this model was to predict out-of-sample probabilities for the Year 2013 dataset using "optimal" threshold, 0.232, as mentioned above for inferring developed or developing status. The result of this experiment is shown in the table below. The accuracy of these predictions is still 0.91, which is approximately the same accuracy as our training data set, and should be considered a pretty good fit.
+A final validation step for this model was to predict out-of-sample probabilities for the Year 2013 dataset using "optimal" threshold, 0.232, as mentioned above for inferring developed or developing status. The result of this experiment is shown in the table below. The accuracy of these predictions is still 0.91 with 95% Confidence Interval of being within the range of 84 ~ 95% , which is approximately the same accuracy as our training data set, and should be considered a pretty good fit.
 
 
-```{r ConfMat_infer, include=FALSE,results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+```{r ConfMat_infer, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 df_2013_cleaned$pred<- predict(le14_fit_final, df_2013_cleaned, type="response")
 conf_mat_pred <- confusionMatrix(as.factor(ifelse(df_2013_cleaned$pred>=0.232, "Developed", "Developing")), df_2013_cleaned$Status, positive = "Developed" )
 # conf_mat_pred
@@ -454,21 +443,31 @@ stargazer(conf_mat_pred_t,
           column.sep.width = "0.2pt",
           digits = 2,
           font.size = "small",
-          title="Confusion Matrix for Infering Year 2013 Data",
+          title="Confusion Matrix for Inferring Year 2013 Data",
           type='latex')
 ```
 
-$$
-\begin{aligned}
-Accuracy &= \dfrac{TP + TN}{TP + FN + FP + TN}\\
-&= \dfrac{16+100}{16+9+3+100}\\
-&= 0.91
-\end{aligned}
-$$
-$$
-95\%\ Confidence\ Interval\ of\ Accuracy: (0.8420, 0.9506)
-$$
+```{r predpro, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="100%", fig.align='center', echo=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
+ggplot(df_2013_cleaned,aes(x=Schooling, y=pred), group = Status)+
+  geom_point(alpha = 0.7, aes(colour=Status))+
+  geom_smooth(col="red3")+ theme_classic()+
+  geom_linerange(aes(x=NULL, y=0.232, xmin=5, xmax=15), linetype="dotted")+
+  # geom_hline(yintercept=0.232, linetype="dashed")+
+  geom_linerange(aes(x=15, y=NULL, ymin=-0.2, ymax=0.232), linetype="dotted")+
+  # geom_vline(xintercept=15, linetype="dotted")+
+  annotate("text", x = 9, y = 0.28, label = "Best Threshold at 0.232", vjust = -0.5)+
+  # ylim(0,1.5)+
+  labs(title="Pred. Prob. of Identified as Developed vs Schooling", x= "Avg. Years of Scooling", y ="Pred. Prob. of being Developed Country")
+```
 
+As you can see from the plot above, with keeping all the other variable constant, given a country with people's average years of schooling being larger than around 15 years, we may infer that the country would be more likely identified as a developed country than developing ones. On the other hand, if a country with people's average years of schooling being lower than 15 years, according to our model, we shall infer the country as developing country.
+
+
+```{r box, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="100%", fig.align='center', echo=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
+ggplot(df_2013_cleaned,aes(x=Status, y=Schooling, color=Status))+
+  geom_boxplot()+theme_classic()+
+  labs(title="Schooling vs Country Status Boxplot", x= "Country Status", y ="Avg. Years of Scooling")
+```
 
 ```{r ROCPred,include=FALSE, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE, eval=FALSE}
 
