@@ -240,13 +240,13 @@ mylogit <- glm(Status ~ Income.composition.of.resources, data=df_2014_cleaned, f
 # Adult mortality, total expenditure, HIV, Schooling, BMI
 final_model <- lm(Life.expectancy ~ Status + Schooling + HIV.AIDS + pop + Measles + Polio + GDP + BMI +  Total.expenditure + Adult.Mortality, data = df_2014_cleaned)
 
-models <- list(mlrmod, m, final_model)
-mod.names <- c('apriori', 'backwardstepwise', 'final_model')
+models <- list(full_model,mlrmod, m, final_model)
+mod.names <- c('full_model','apriori', 'backwardstepwise', 'final_model')
 # TODO: Put bic values in a table
 bictab(cand.set = models, modnames = mod.names)
 
 # TODO: Add results model
-stargazer(mlrmod,m,final_model,
+stargazer(full_model,mlrmod,m,final_model,
           dep.var.labels="Life expectancy",
           header=FALSE,
           no.space = TRUE,
@@ -257,7 +257,7 @@ stargazer(mlrmod,m,final_model,
           digits.extra=7,
           font.size = "small",
           covariate.labels=c("Status Developing countries","Adult Mortality num per 1000 people", "infant.deaths per 1000 people", "Alcohol consumption ","Gov. Expenditure on Healthcare", "Hepatitis immunization","Measles recorded per 1000 people","BMI","under.five.deaths","Polio","Total.expenditure","Diphtheria","HIV/AIDS Deaths/1000 live births", "GDP per capita","thinness..1.19.years","thinness.5.9.years","Std. Income Composition of Resources","Years of Schooling","Population"),
-          type='text')
+          type='latex')
 ```
 
 ```{r model1_backward, echo=FALSE, message=FALSE, warning=FALSE}
@@ -306,7 +306,12 @@ The variables that have a crucial impact on population longevity are
 
 We observe from our Adjusted R-squared value 0.8194 that 82% of the variance in life expectancy is explained by the model. 
 
-TODO: Add interpretation for the significant variables
+According to the statistics, for the residual summary statistics, and we can see that
+the median should be close to 0, i.e., the mean of the residuals. 3Q and 1Q should be quantitatively close
+to each other and symmetrically distributed, and the errors follow a Gaussian distribution. Based on the relationship between p value and 0.05 we can conclude that the above five important factors have an impact on life expectancy.If all other variables are held constant，Adults death  probability increase per 0.1% will decrease Life expectancy by 0.03 year (11 days).General government expenditure on health
+Rise per 1% will increase Life expectancy by 0.03 year (11 days).HIV.aids death rates (which are kids from 0-4 yrs) Rise 0.1% 
+will decrese Life expectancyby 1.04 year (380 days). Everage BMI Increase one unit can increase Life expectancy by 0.04 year (  17 days).
+Year of Schooling Rise per year will increase Life expectancy for 1.18 year ( 431 days).We also observe from our Adjusted R-squared value 0.8194 that 82% of the variance in life expectancy is explained by the model.
 
 ## Question 2: (Inference)
 
