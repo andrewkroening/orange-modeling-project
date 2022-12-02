@@ -6,6 +6,8 @@ output:
   pdf_document:
     toc: true
     toc_depth: 3
+bibliography: citations.bib
+link-citation: true
 ---
 
 ```{r setup, include=FALSE}
@@ -93,15 +95,13 @@ This analysis uses data from the WHO and World Bank. We seek to understand the v
 
 ## Data
 
-The dataset for this analysis contains national-level observations of variables related to life expectancy around the globe for a period spanning the early portion of the 21st century. The complete dataset includes observations beginning in the year 2000 and ending in the year 2015. As a full dataset, there are 2,938 observations for 22 variables. Practically, each country has approximately one observation each year, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering significant disease, economic, and social factors. 
+The dataset [@rajarshi_2018] for this analysis contains national-level observations of variables related to life expectancy around the globe for a period spanning the early portion of the 21st century. The complete dataset includes observations beginning in the year 2000 and ending in the year 2015. As a full dataset, there are 2,938 observations for 22 variables. Practically, each country has approximately one observation each year, averaging 183 for each of the 16 years encompassed by the data. The dataset effectively contains 20 variables for each country and year combination, covering significant disease, economic, and social factors. 
 
 During the initial round of exploratory data analysis (EDA), the team identified many missing values from the dataset. These missing values included: 41x Population, 10x Hepatitis B, and 10x Schooling observations, with a large number of missing population values being the most concerning. The team considered several approaches for mitigating the problems posed by this data, as it precludes several potentially influential countries from being included in this analysis. We considered multiple imputation and scholastic imputation for mitigating these issues but ultimately decided against both approaches.
 
 An alternative approach for missing data was identified as theoretically feasible early in the analysis. Because of the national level of our dataset, we could find suitable replacement values from another source with high integrity in these areas, such as the World Bank, the International Monetary Fund, or the CIA World Factbook. While those sources had existing data for some of our missing values, we opted not to use them for replacement. Most replacement candidates we found did not match the surrounding data points (i.e., GDP figures for the country/year in question needed to be closer to consider a match). Thus we have low confidence that those values would be consistent with the WHO's data collection methods. While options are certainly available, the team assesses that the potential gain from including the additional countries does not offset the possible bias or skew introduced by imputation.
 
-[@DINGKUN - ADD THE POPULATION FROM WORLD BANK PART HERE]
-
-After the initial treatments to factor variables, we reduced our dataset to complete cases only and subset for our analysis's two years of interest. After these steps and decisions, we subset the data to make two sub-datasets: one for 2014 and one for 2013, which we will use in our second research question. These two datasets are nearly identical in size, with the 2014 dataset consisting of [@DINGKUN 131] observations and the 2013 dataset having [@DINGKUN 130].
+As for population variable, we find problems in the consistency of the value unit. We identify that some countries' population are pre-processed to be in 10,000s, while others are recorded in actual number. We decided to substitute this variable with reliable data source, World Bank [@world]. After the initial treatments to factor variables, we reduce our dataset to complete cases only and subset for our analysis's two years of interest. After these steps and decisions, we subset the data to make two sub-datasets: one for 2014 and one for 2013, which we will use in our second research question. These two datasets are nearly identical in size, with the 2014 dataset consisting of 129 observations and the 2013 dataset having 128 without any missingness.
 
 # Methods
 
@@ -361,7 +361,7 @@ stargazer(vif_table_summary,
 
 ### Assessment
 
-Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realize the interpretation of *Income Composition of Resources* variable might be troublesome. It recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1), however the meaning behind it is confusing. We decided to adjust the model to omit *Income Composition of Resources* variable, and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive (TP), True Negative (TN), False Negative (FN), and False Positive (FP) rates by comparing predicted values and actual values. For prediction, we first use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%, with 95% Confidence Interval of within 83% ~ 95%.
+Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realize the interpretation of *Income Composition of Resources* variable might be troublesome. It recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1), however the meaning behind it is confusing. We decided to adjust the model to omit *Income Composition of Resources* variable, and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive, True Negative, False Negative, and False Positive rates by comparing predicted values and actual values. For prediction, we first use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%, with 95% Confidence Interval of within 83% ~ 95%.
 
 ```{r ConfMat, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_final)>=0.5, "Developed", "Developing")), df_2014_cleaned$Status, positive = "Developed" )
@@ -387,7 +387,7 @@ stargazer(conf_mat_t,
 ```
 
 
-A useful tool for measuring our predictions is the Receiver Operator Characteristic (ROC) curve with the axis as Sensitivity (true positive rate) and 1 - Specificity (true negative rate). We find out the optimal prediction cut-off for year 2014 dataset is 0.232, and we can see that the area under the curve is 0.959, a very strong number. We leave the value as described because the small number of countries designated as developing in our dataset means that each missed prediction carries greater weight in this group. We observed 5 false positives and 8 false negatives in our matrix, and are satisfied with this result. 
+A useful tool for measuring our predictions is the Receiver Operator Characteristic (ROC) curve with the axis as true positive rate (Sensitivity) and true negative rate (1 - Specificity). We find out the optimal prediction cut-off for year 2014 dataset is 0.232, and we can see that the area under the curve is 0.959, a very strong number. We leave the value as described because the small number of countries designated as developing in our dataset means that each missed prediction carries greater weight in this group. We observed 5 false positives and 8 false negatives in our matrix, and are satisfied with this result. 
 
 ```{r ROCFinal, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 # invisible(roc(df_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres=0.5,legacy.axes=T,
@@ -620,3 +620,7 @@ income_plot <- ggplot(df_life_expectancy_cc_2014, aes(y=Income.composition.of.re
 #gender_plot <- ggplot(airline,aes(Gender, Age))+geom_boxplot(aes(fill=Satisfaction))
 plot_grid(life_expectancy_plot, gdp_plot, population_plot, percentage_expenditure_plot, hepatitis_plot, measles_plot, polio_plot, hiv_plot, diphtheria_plot, schooling_plot, income_plot, ncol=3)
 ```
+
+
+\newpage
+# References
