@@ -1,11 +1,11 @@
 ---
 title: "Analysis of Global Life Expectancy and Related Factors"
 author: "Echo Chen, Andrew Kroening, Pooja Kabber, Dingkun Yang"
-date: "November 23rd, 2022"
+date: "December 2nd, 2022"
 output: 
   pdf_document:
     toc: true
-    toc_depth: 3
+    toc_depth: 2
 bibliography: citations.bib
 link-citation: true
 ---
@@ -292,17 +292,17 @@ Our final model matches the data to a degree of 87%. In summary, our final model
 
 ### Results
 
-Table XXXX: Logistic Regression Models (below) shows the output of 8 predictor variables regressed onto country development status in four models. From left to right those models are: 
+Table XXXX: Logistic Regression Models (below) shows the output of 8 predictor variables regressed onto country development status in four models. From left to right, those models are: 
 
 1. the initial full model
 
-2. a model with Health Expenditure/GDP per capita dropped for multicolinearity concerns
+2. a model with Health Expenditure/GDP per capita dropped for multicollinearity concerns
 
 3. the potential model fit after all logistic transformations with Income Composition of Resources included
 
-4. the final model fit after dropping Income Composition of Resources
+4. the final model fit after dropping the Income Composition of Resources
 
-From the model output we observe that only one predictor variable has a p-value less than 0.05 denoting it as a significant predictor: *Years of Schooling*. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as a developed country is: while holding all other predictor variables constant, a one year increase in *Years of Schooling* make it 2.39 ($e^{1.05}$) times more likely that country being identified as developed country.
+From the model output, we observe that only one predictor variable has a p-value less than 0.05 denoting it as a significant predictor: *Years of Schooling*. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as a developed country is: while holding all other predictor variables constant, a one-year increase in *Years of Schooling* make it 2.39 ($e^{1.05}$) times more likely that country being identified as a developed country.
 
 ```{r logistic, results="asis", out.width="90%", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE}
 le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(pop)   + Schooling, data = df_2014_cleaned, family=binomial(link="logit"))
@@ -334,7 +334,7 @@ stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_hdi, le14_fit_final,
 
 ```
 
-We also examine multicolinearity concerns for all four model fits. From the table below it is clearly observable that the first model has significant concerns, with two variables scoring a VIF of over 10. After we remove one variable, all subsequent models are satisfactory, with no variables scoring high on this test.
+We also examine multicollinearity concerns for all four model fits. The table below clearly shows that the first model has significant problems, with two variables scoring a VIF of over 10. After we remove one variable, all subsequent models are satisfactory, with no variables scoring high on this test.
 
 ```{r multicol test, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 vif_table_full <- vif(le14_fit_full)
@@ -361,7 +361,7 @@ stargazer(vif_table_summary,
 
 ### Assessment
 
-Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realize the interpretation of *Income Composition of Resources* variable might be troublesome. It recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1), however the meaning behind it is confusing. We decided to adjust the model to omit *Income Composition of Resources* variable, and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive, True Negative, False Negative, and False Positive rates by comparing predicted values and actual values. For prediction, we first use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%, with 95% Confidence Interval of within 83% ~ 95%.
+Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realize the interpretation of *Income Composition of Resources* variable might be troublesome. It was recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1); however, its meaning could be more transparent. We decided to adjust the model to omit *Income Composition of Resources* variable and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive, True Negative, False Negative, and False Positive rates by comparing predicted and actual values. For prediction, we first use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%, with a 95% Confidence Interval of within 83% ~ 95%.
 
 ```{r ConfMat, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_final)>=0.5, "Developed", "Developing")), df_2014_cleaned$Status, positive = "Developed" )
@@ -387,7 +387,7 @@ stargazer(conf_mat_t,
 ```
 
 
-A useful tool for measuring our predictions is the Receiver Operator Characteristic (ROC) curve with the axis as true positive rate (Sensitivity) and true negative rate (1 - Specificity). We find out the optimal prediction cut-off for year 2014 dataset is 0.232, and we can see that the area under the curve is 0.959, a very strong number. We leave the value as described because the small number of countries designated as developing in our dataset means that each missed prediction carries greater weight in this group. We observed 5 false positives and 8 false negatives in our matrix, and are satisfied with this result. 
+A valuable tool for measuring our predictions is the Receiver Operator Characteristic (ROC) curve with the axis as true positive rate (Sensitivity) and true negative rate (1 - Specificity). We find out the optimal prediction cut-off for the year 2014 dataset is 0.232, and we can see that the area under the curve is 0.959, a very strong number. We leave the value as described because the small number of countries designated as developing in our dataset means that each missed prediction carries greater weight in this group. We observed five false positives and eight false negatives in our matrix and are satisfied with this result. 
 
 ```{r ROCFinal, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 # invisible(roc(df_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres=0.5,legacy.axes=T,
@@ -399,7 +399,7 @@ invisible(roc(df_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thr
 
 ### Out-of-Sample Predictions
 
-A final validation step for this model was to predict out-of-sample probabilities for the Year 2013 dataset using "optimal" threshold, 0.232, as mentioned above for inferring developed or developing status. The result of this experiment is shown in the table below. The accuracy of these predictions is still 0.91 with 95% Confidence Interval of being within the range of 84 ~ 95% , which is approximately the same accuracy as our training data set, and should be considered a pretty good fit.
+A final validation step for this model was to predict out-of-sample probabilities for the Year 2013 dataset using the "optimal" threshold, 0.232, as mentioned above, for inferring developed or developing status. The result of this experiment is shown in the table below. The accuracy of these predictions is still 0.91, with a 95% Confidence Interval of being within the range of 84 ~ 95%, which is approximately the same accuracy as our training dataset and should be considered a good fit.
 
 
 ```{r ConfMat_infer, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
@@ -434,7 +434,7 @@ ggplot(df_2013_cleaned,aes(x=Schooling, y=pred), group = Status)+
   labs(title="Pred. Prob. of Identified as Developed vs Schooling", x= "Avg. Years of Scooling", y ="Pred. Prob. of being Developed Country")
 ```
 
-As you can see from the plot above, with keeping all the other variable constant, given a country with people's average years of schooling being larger than around 15 years, we may infer that the country would be more likely identified as a developed country than developing ones. On the other hand, if a country with people's average years of schooling being lower than 15 years, according to our model, we shall infer the country as developing country.
+As you can see from the plot above, keeping all the other variables constant, if a given country has a population averaging over 15 years of schooling, we may infer that the country would be more likely identified as a developed country than a developing one. On the other hand, if a country with people's average years of schooling is lower than 15 years, according to our model, we shall infer the country is a developing country.
 
 
 ```{r box, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="100%", fig.align='center', echo=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
@@ -458,7 +458,7 @@ invisible(roc(df_2013_cleaned$Status_num,df_2013_cleaned$pred,plot=T,print.thres
 
 ### Final Model Evaluation
 
-Out of curiosity, we compare the final model with a model with only one predictor variable, *Years of Schooling*. An ANOVA result surprisingly shows that two models are not statistically different in terms of "inference" accuracy. As we can see in the table below (Analysis of Deviance: Final Model vs Model w/ One Predictor Variable), the p-value being 0.07 is greater than 0.05, meaning *Years of Schooling* variable by its own is a great indicator of whether the country should be considered as developed or developing country.
+We compare the final model with a model with only one predictor variable, *Years of Schooling*. An ANOVA result surprisingly shows that the two models are not statistically different in terms of "inference" accuracy. As we can see in the table below (Analysis of Deviance: Final Model vs. Model w/ One Predictor Variable), the p-value of 0.07 is greater than 0.05, meaning the *Years of Schooling* variable on its own is an excellent indicator of whether the country should be considered as developed or developing country.
 
 ```{r ANOVA, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
 anova_t <- anova(le14_fit_final, le14_fit_one, test="Chisq")
@@ -478,9 +478,29 @@ stargazer(anova_t,
 
 # Conclusion
 
-***Describe the key takeaways from your analysis, limitations, and future work that can be done to advance knowledge in this area.***
+This analysis is concluded with several important takeaways and policy considerations for nations seeking to improve either life expectancy or development status. 
 
-[What is the impact of this analysis, do we think it is insightful or not?]
+## Limitations
+
+It is essential to disclose limitations and lessons learned to the data scientists and others attempting a similar analysis. First, the team found significant challenges with portions of the dataset, as mentioned in multiple report sections. We mitigated those challenges to the best of our ability. However, it is still worth calling out the importance of understanding the chain of custody, beginning with data collection until it is analyzed. In this case, countries of origin collected data, which the WHO compiled, then recompiled by researchers before it reached the team. None of these actors have malice in their data practice, but mistakes do happen.
+
+More delicately, there is also a consideration of the geopolitical nature of this type of analysis. The status of a region and its people can be difficult, and several unresolved situations worldwide can challenge analysts. We take the region of Kosovo as an example. Depending on your background, Kosovo may be a country, breakaway region, province of Serbia, or something else altogether. We do not seek to arbitrate these discussions but rather point out their impact on whether we count data once, twice, or not at all in a study such as this one.
+
+## Areas for Future Study
+
+We identified several areas in the course of the study that are deserving of more analytical attention. These areas might have been outside the scope of our analysis or required time the team did not have available. They are:
+
+* The interaction between Development Status and HIV when analyzing Life Expectancy: We expect better medical care in developed countries contributes to higher life expectancy.
+
+* The interaction between Development Status and Schooling when analyzing Life Expectancy: We expect more schooling may not affect life expectancy for developed countries
+
+* The region or continent of the countries included in the study. This element was not included in our analysis but did appear interesting when the data were visualized on a map. The causality of this relationship is intriguing.
+
+* Changes in our outcome categories over time. As an example, global Human Development Index figures are going up consistently, but there are still a lot of developing countries
+
+## Recommendations
+
+For policymakers looking to improve average life expectancy, we confidently recommend prioritizing schooling, investing in healthcare, and taking population health measures as more deserving of attention. These areas should not be surprising against a common sense check, but the importance of schooling in our results is worth emphasizing repeatedly. The impact of education on development status is again noteworthy. We would make policy recommendations that encourage investment in this area to drive improvements in societal well-being. Schooling does present a dilemma, as the investment in upskilling the younger portion of a population requires withholding them from the workforce, potentially in situations where they offer crucial labor. Nonetheless, the benefits clearly outweigh the short-term economic costs, and we encourage countries to consider this approach.
 
 \newpage
 # Appendix
