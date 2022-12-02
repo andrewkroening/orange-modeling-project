@@ -294,7 +294,7 @@ The linearity assumptions are met throughout the model. We can note that all lin
 * Normal Q-Q Plot: All points are distributed along the reference line; again, it is good to assume that the data have the normality of the residuals. (Normality of residuals assumption)
 * Relationship between residuals and leverage: Any point at 0.5 kitchen distance from the boundary is influential. However, there is no significant point here. (Linearity assumption)
 
-### Model Interpretation [This is not consistent with the brief]
+### Model Interpretation
 
 The variables that have a crucial impact on population longevity are 
 
@@ -306,12 +306,7 @@ The variables that have a crucial impact on population longevity are
 
 We observe from our Adjusted R-squared value 0.8194 that 82% of the variance in life expectancy is explained by the model. 
 
-According to the statistics, for the residual summary statistics, and we can see that
-the median should be close to 0, i.e., the mean of the residuals. 3Q and 1Q should be quantitatively close
-to each other and symmetrically distributed, and the errors follow a Gaussian distribution. Based on the relationship between p value and 0.05 we can conclude that the above five important factors have an impact on life expectancy.If all other variables are held constant，Adults death  probability increase per 0.1% will decrease Life expectancy by 0.03 year (11 days).General government expenditure on health
-Rise per 1% will increase Life expectancy by 0.03 year (11 days).HIV.aids death rates (which are kids from 0-4 yrs) Rise 0.1% 
-will decrese Life expectancyby 1.04 year (380 days). Everage BMI Increase one unit can increase Life expectancy by 0.04 year (  17 days).
-Year of Schooling Rise per year will increase Life expectancy for 1.18 year ( 431 days).We also observe from our Adjusted R-squared value 0.8194 that 82% of the variance in life expectancy is explained by the model.
+According to the statistics, for the residual summary statistics, we can see that the median should be close to 0, i.e., the mean of the residuals. 3Q and 1Q should be quantitatively close to each other and symmetrically distributed, and the errors follow a Gaussian distribution. Based on the relationship between the p-value and 0.05, we can conclude that the above five essential factors have an impact on life expectancy. If all other variables are held constant, Adults death probability increase by 0.1% will decrease Life expectancy by 0.03 years (11 days). General government expenditure on health Rise by 1% will increase Life expectancy by 0.03 years (11 days).HIV.aids death rates (which are kids from 0-4 yrs) Rise of 0.1% will decrease Life expectancy by 1.04 years (380 days). Everage BMI Increase of one unit can increase Life expectancy by 0.04 years ( 17 days). Year of Schooling Rise per year will increase Life expectancy by 1.18 years ( 431 days). We also observe from our Adjusted R-squared value 0.8194 that the model explains 82% of the variance in life expectancy.
 
 ## Question 2: (Inference)
 
