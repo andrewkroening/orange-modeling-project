@@ -404,12 +404,17 @@ stargazer(conf_mat_t,
           type='latex')
 ```
 
+```{r binplot, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
+# binnedplot(fitted(le14_fit_final),residuals(le14_fit_final,"resp"),xlab="Pred. probabilities",col.int="red4",
+#            ylab="Avg. residuals",main="Binned residual plot",col.pts="navy")
+```
+
 
 A useful tool for measuring our predictions is the Receiver Operator Characteristic (ROC) curve with the axis as Sensitivity (true positive rate) and 1 - Specificity (true negative rate). We find out the optimal prediction cut-off for year 2014 dataset is 0.232, and we can see that the area under the curve is 0.959, a very strong number. We leave the value as described because the small number of countries designated as developing in our dataset means that each missed prediction carries greater weight in this group. We observed 5 false positives and 8 false negatives in our matrix, and are satisfied with this result. 
 
 ```{r ROCFinal, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-# invisible(roc(df_life_expectancy_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres=0.5,legacy.axes=T,
-#               print.auc =T,col="red3"))
+# invisible(roc(df_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres=0.5,legacy.axes=T,
+              # print.auc =T,col="red3"))
 invisible(roc(df_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thres="best",legacy.axes=T,
               print.auc =T,col="red3"))
 ```
