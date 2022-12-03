@@ -4,7 +4,7 @@
 
 ### Overview
 
-**In this project, our team attempted to find new insights into factors that drive human well-being around the world. We specifically look to investigate two areas: life expectancy and country development status with the goal of providing insights to policy and decision makers. Check out the presentation or report if you want the full summary, but here's a hint:**
+In this project, our team attempted to find new insights into factors that drive human well-being around the world. We specifically look to investigate two areas: life expectancy and country development status with the goal of providing insights to policy and decision makers. Check out the presentation or report if you want the full summary, but here's a hint:
 
 *Stay in school*
 
