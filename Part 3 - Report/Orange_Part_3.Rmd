@@ -181,7 +181,7 @@ Almost all the data have significant differences between the minimum and maximum
 
 ### Results
 
-We then proceeded to model fitting. To answer the first research question, we choose to use linear regression model with life expectancy as our response variable. We fit three models to study the relationship between the independent variables and life expectancy, including only our *a priori* variables, using backward stepwise selection and our final model which combines our *a priori* variables with the result of the backward stepwise selection ((Appendix C)). During this process, we found that the Income composition of resources variable was in fact analogous to human development index. We chose not to include it in our model for two reasons:
+We then proceeded to model fitting. To answer the first research question, we choose to use linear regression model with life expectancy as our response variable. We fit three models to study the relationship between the independent variables and life expectancy, including only our *a priori* variables, using backward stepwise selection and our final model which combines our *a priori* variables with the result of the backward stepwise selection (Appendix C). During this process, we found that the Income composition of resources variable was in fact analogous to human development index. We chose not to include it in our model for two reasons:
 
 - Human development index is a measure that already factors life expectancy, our response variable.
 
@@ -590,7 +590,7 @@ stargazer(vif_table_summary,
 
 ```
 
-\newpage
+\newpage 
 **Appendix G - Boxplot, Question 2**
 
 ```{r box, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="100%", fig.align='center', echo=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
