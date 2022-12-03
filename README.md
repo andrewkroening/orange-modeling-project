@@ -2,6 +2,21 @@
 
 ### Team Orange: [Pooja Kabber](https://www.linkedin.com/in/poojakabber/), [Echo Chen](https://www.linkedin.com/in/echochenxy/), [Dingkun Yang](https://www.linkedin.com/in/dyang7/), and [Andrew Kroening](https://www.linkedin.com/in/andrew-kroening/).
 
+
+### Presentation
+
+Click on the image and watch our presentation on YouTube
+
+[![Watch the Presentation](https://user-images.githubusercontent.com/81750079/205457502-888f5fdb-0e75-4312-8057-d38c26f5d907.jpg)](https://youtu.be/iyczaHrG9HI)
+
+or visit url: https://youtu.be/iyczaHrG9HI
+
+#### Slides
+
+[Presentation Slides](./Team_Presentation.pdf)
+
+
+
 ### Overview
 
 In this project, our team attempted to find new insights into factors that drive human well-being around the world. We specifically look to investigate two areas: life expectancy and country development status with the goal of providing insights to policy and decision makers. Check out the presentation or report if you want the full summary, but here's a hint:
