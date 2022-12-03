@@ -226,7 +226,10 @@ According to the statistics, for the residual summary statistics, we can see tha
 ## Question 2: (Inference)
 
 ### Results
-Table below shows the output of 8 predictor variables regressed onto country development status in 4 models. 
+
+From the Logistic Regression Models output table in Appendix E, we observe that only one predictor variable has a p-value less than 0.05 denoting it as a significant predictor: *Years of Schooling*. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as a developed country is: while holding all other predictor variables constant, a one-year increase in *Years of Schooling* make it 2.39 ($e^{1.05}$) times more likely that country being identified as a developed country.
+
+We also examine multicollinearity concerns for all four model fits. The Variance Inflation Factors table in Appendix F clearly shows that the first model has significant problems, with two variables scoring a VIF of over 10. After we remove one variable, all subsequent models are satisfactory, with no variables scoring high on this test.
 
 ```{r logistic, results="asis", out.width="90%", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE}
 le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(pop)   + Schooling, data = df_2014_cleaned, family=binomial(link="logit"))
@@ -240,60 +243,6 @@ le14_fit_final <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + 
 le14_fit_final_1 <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure + HIV.AIDS + log(GDP) + log(pop)   + Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
 
 le14_fit_one <- glm(Status_num ~ Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
-
-# stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_hdi, le14_fit_final,
-stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_hdi, le14_fit_final,
-          dep.var.labels="Development Status",
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          report = ('vcsp*'),
-          column.sep.width = "0.1pt",
-          digits = 2,
-          digits.extra=7,
-          font.size = "small",
-          title='Logistic Regression Models',
-          covariate.labels=c("Life Expectancy","Health Expend. /GDP per capita", "BMI", "Gov. Expend. on Healthcare", "HIV/AIDS Deaths/1k live births", "GDP per capita","Log of GDP per capita", "Std. Income Composit. of Resources", "Log of Population","Years of Schooling"),
-          type='latex')
-
-```
-
-
-From left to right, those models are: 
-
-1. the initial full model
-
-2. a model with Health Expenditure/GDP per capita dropped for multicollinearity concerns
-
-3. the potential model fit after all logistic transformations with Income Composition of Resources included
-
-4. the final model fit after dropping the Income Composition of Resources
-
-From the model output, we observe that only one predictor variable has a p-value less than 0.05 denoting it as a significant predictor: *Years of Schooling*. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as a developed country is: while holding all other predictor variables constant, a one-year increase in *Years of Schooling* make it 2.39 ($e^{1.05}$) times more likely that country being identified as a developed country.
-
-We also examine multicollinearity concerns for all four model fits. The table below clearly shows that the first model has significant problems, with two variables scoring a VIF of over 10. After we remove one variable, all subsequent models are satisfactory, with no variables scoring high on this test.
-
-```{r multicol test, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-vif_table_full <- vif(le14_fit_full)
-vif_table_semi_final <- vif(le14_fit_semi_final)
-vif_table_hdi <- vif(le14_fit_hdi)
-vif_table_final <- vif(le14_fit_final)
-vif_table_summary <- dplyr::bind_rows(vif_table_full, vif_table_semi_final,vif_table_hdi, vif_table_final)
-colnames(vif_table_summary) <- c("Life Expectancy","Health Expenditure/GDP per capita", "BMI", "Health Gov. Expenditure Percentage", "HIV/AIDS Deaths/1000 live births", "GDP per capita","Std. Income composition of resources", "Log of Population" , "Years of Schooling", "Log of GDP per capita")
-rownames(vif_table_summary) <- c("(1)", "(2)", "(3)", "(4)")
-stargazer(vif_table_summary,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Variance Inflation Factors',
-          flip=TRUE,
-          type='latex'
-          )
-
 ```
 
 ### Assessment
@@ -370,14 +319,9 @@ ggplot(df_2013_cleaned,aes(x=Schooling, y=pred), group = Status)+
   labs(title="Pred. Prob. of Identified as Developed vs Schooling", x= "Avg. Years of Scooling", y ="Pred. Prob. of being Developed Country")
 ```
 
-As you can see from the plot above, keeping all the other variables constant, if a given country has a population averaging over 15 years of schooling, we may infer that the country would be more likely identified as a developed country than a developing one. On the other hand, if a country with people's average years of schooling is lower than 15 years, according to our model, we shall infer the country is a developing country.
+As you can see from the Average Years of Schooling vs Country Status boxplot in Appendix G, keeping all the other variables constant, if a given country has a population averaging over 15 years of schooling, we may infer that the country would be more likely identified as a developed country than a developing one. On the other hand, if a country with people's average years of schooling is lower than 15 years, according to our model, we shall infer the country is a developing country.
 
 
-```{r box, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="100%", fig.align='center', echo=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-ggplot(df_2013_cleaned,aes(x=Status, y=Schooling, color=Status))+
-  geom_boxplot()+theme_classic()+
-  labs(title="Schooling vs Country Status Boxplot", x= "Country Status", y ="Avg. Years of Scooling")
-```
 
 ```{r ROCPred,include=FALSE, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE, eval=FALSE}
 
@@ -414,6 +358,10 @@ stargazer(anova_t,
 
 This analysis is concluded with several important takeaways and policy considerations for nations seeking to improve either life expectancy or development status. 
 
+## Recommendations
+
+For policymakers looking to improve average life expectancy, we confidently recommend prioritizing schooling, investing in healthcare, and taking population health measures as more deserving of attention. These areas should not be surprising against a common sense check, but the importance of schooling in our results is worth emphasizing repeatedly. The impact of education on development status is again noteworthy. We would make policy recommendations that encourage investment in this area to drive improvements in societal well-being. Schooling does present a dilemma, as the investment in upskilling the younger portion of a population requires withholding them from the workforce, potentially in situations where they offer crucial labor. Nonetheless, the benefits clearly outweigh the short-term economic costs, and we encourage countries to consider this approach.
+
 ## Limitations
 
 It is essential to disclose limitations and lessons learned to the data scientists and others attempting a similar analysis. First, the team found significant challenges with portions of the dataset, as mentioned in multiple report sections. We mitigated those challenges to the best of our ability. However, it is still worth calling out the importance of understanding the chain of custody, beginning with data collection until it is analyzed. In this case, countries of origin collected data, which the WHO compiled, then recompiled by researchers before it reached the team. None of these actors have malice in their data practice, but mistakes do happen.
@@ -432,9 +380,7 @@ We identified several areas in the course of the study that are deserving of mor
 
 * Changes in our outcome categories over time. As an example, global Human Development Index figures are going up consistently, but there are still a lot of developing countries
 
-## Recommendations
 
-For policymakers looking to improve average life expectancy, we confidently recommend prioritizing schooling, investing in healthcare, and taking population health measures as more deserving of attention. These areas should not be surprising against a common sense check, but the importance of schooling in our results is worth emphasizing repeatedly. The impact of education on development status is again noteworthy. We would make policy recommendations that encourage investment in this area to drive improvements in societal well-being. Schooling does present a dilemma, as the investment in upskilling the younger portion of a population requires withholding them from the workforce, potentially in situations where they offer crucial labor. Nonetheless, the benefits clearly outweigh the short-term economic costs, and we encourage countries to consider this approach.
 
 \newpage
 # Appendix
@@ -574,7 +520,7 @@ autoplot(final_model)
 ```
 \newpage
 
-<!-- **Appendix D - BIC Table, Question 1** -->
+<!-- **Appendix E - BIC Table, Question 1** -->
 
 <!-- ```{r bic_table, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE} -->
 <!-- stargazer(bic_tab, -->
@@ -583,6 +529,75 @@ autoplot(final_model)
 <!--           font.size = "small", -->
 <!--            type='latex') -->
 <!-- ``` -->
+
+\newpage
+**Appendix E - Logistic Regression Models, Question 2**
+
+Table below shows the output of 8 predictor variables regressed onto country development status in 4 models. 
+
+```{r logistic_output, results="asis", out.width="90%", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE}
+# stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_hdi, le14_fit_final,
+stargazer(le14_fit_full,le14_fit_semi_final, le14_fit_hdi, le14_fit_final,
+          dep.var.labels="Development Status",
+          header=FALSE,
+          no.space = TRUE,
+          single.row = TRUE,
+          report = ('vcsp*'),
+          column.sep.width = "0.1pt",
+          digits = 2,
+          digits.extra=7,
+          font.size = "small",
+          title='Logistic Regression Models',
+          covariate.labels=c("Life Expectancy","Health Expend. /GDP per capita", "BMI", "Gov. Expend. on Healthcare", "HIV/AIDS Deaths/1k live births", "GDP per capita","Log of GDP per capita", "Std. Income Composit. of Resources", "Log of Population","Years of Schooling"),
+          type='latex')
+
+```
+
+
+From left to right, those models are: 
+
+1. the initial full model
+
+2. a model with Health Expenditure/GDP per capita dropped for multicollinearity concerns
+
+3. the potential model fit after all logistic transformations with Income Composition of Resources included
+
+4. the final model fit after dropping the Income Composition of Resources
+
+\newpage
+**Appendix F - VIF Table, Question 2**
+
+```{r multicol test, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+vif_table_full <- vif(le14_fit_full)
+vif_table_semi_final <- vif(le14_fit_semi_final)
+vif_table_hdi <- vif(le14_fit_hdi)
+vif_table_final <- vif(le14_fit_final)
+vif_table_summary <- dplyr::bind_rows(vif_table_full, vif_table_semi_final,vif_table_hdi, vif_table_final)
+colnames(vif_table_summary) <- c("Life Expectancy","Health Expenditure/GDP per capita", "BMI", "Health Gov. Expenditure Percentage", "HIV/AIDS Deaths/1000 live births", "GDP per capita","Std. Income composition of resources", "Log of Population" , "Years of Schooling", "Log of GDP per capita")
+rownames(vif_table_summary) <- c("(1)", "(2)", "(3)", "(4)")
+stargazer(vif_table_summary,
+          summary=FALSE,
+          header=FALSE,
+          no.space = TRUE,
+          single.row = TRUE,
+          column.sep.width = "0.2pt",
+          digits = 2,
+          font.size = "small",
+          title='Variance Inflation Factors',
+          flip=TRUE,
+          type='latex'
+          )
+
+```
+
+\newpage
+**Appendix G - Boxplot, Question 2**
+
+```{r box, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="100%", fig.align='center', echo=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
+ggplot(df_2013_cleaned,aes(x=Status, y=Schooling, color=Status))+
+  geom_boxplot()+theme_classic()+
+  labs(title="Schooling vs Country Status Boxplot", x= "Country Status", y ="Avg. Years of Scooling")
+```
 
 \newpage
 # References
