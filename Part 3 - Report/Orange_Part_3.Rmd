@@ -160,9 +160,9 @@ Since percentage expenditure is highly correlated with GDP and schooling is high
 
 ## Exploratory Data Analysis
 
-The dataset for our analysis has 22 variables, as previously described. For a complete description of all variables, see Appendix A. The categorical and outcome variable for our second question is country development status. We check the relationship between this variable and the outcome variable for our first question, life expectancy. We use boxplots to find that the life expectancy in developed countries is higher, which means the categorical variable might be a good predictor for the model in the first question. Another interesting observation that is useful in understanding the factors that affect development status of a country is the boxplot of GDP vs Status. We see that the median GDP is higher for developed countries. We also see from the Schooling vs Status plot that the median years of schooling is larger for developed countries than for developing countries. The full summary of EDA plots is available in Appendix B.
+The dataset for our analysis has 22 variables, as previously described. For a complete description of all variables, see Appendix A. The categorical and outcome variable for our second question is country development status. We check the relationship between this variable and the outcome variable for our first question, life expectancy. We use boxplots to find that the life expectancy in developed countries is higher, which means the categorical variable might be a good predictor for the model in the first question. Another interesting observation useful in understanding the factors that affect a country's development status is the boxplot of GDP vs. Status. We see that the median GDP is higher for developed countries. We also see from the Schooling vs. Status plot that the median years of schooling is larger for developed countries than for developing countries. The full summary of EDA plots is available in Appendix B.
 
-For the continuous variables, we selected the a priori variables we had selected earlier and examined those relationships. First, we examined the schooling, income, thinness, GDP, and HIV variables and found linear relationships consistent with the initial prediction of the variables of interest. After we dropped correlated pairs showing significantly high VIFs, we were left with the resulting dataset for analysis. Descriptive information about the variables used to address question 1 can be found in Table 1 (below).
+We selected the *a priori* variables we had set earlier for the continuous variables and examined those relationships. First, we examined the schooling, income, thinness, GDP, and HIV variables and found linear relationships consistent with the initial prediction of the variables of interest. After we dropped correlated pairs showing significantly high VIFs, we were left with the resulting dataset for analysis. Descriptive information about the variables used to address question 1 can be found in Table 1 (below).
 
 ```{r table_one, echo=FALSE, results="asis", header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 df_life_expectancy_14_subset <- subset(df_life_expectancy_2014,select = c(Status, Population, Life.expectancy, percentage.expenditure, Measles, Polio, HIV.AIDS, GDP, Schooling, Income.composition.of.resources, BMI, Total.expenditure))# select variables
@@ -181,17 +181,15 @@ Almost all the data have significant differences between the minimum and maximum
 
 ### Results
 
-We then proceeded to model fitting. To answer the first research question, we choose to use linear regression model with life expectancy as our response variable. We fit three models to study the relationship between the independent variables and life expectancy, including only our *a priori* variables, using backward stepwise selection and our final model which combines our *a priori* variables with the result of the backward stepwise selection (Appendix C). During this process, we found that the Income composition of resources variable was in fact analogous to human development index. We chose not to include it in our model for two reasons:
+We then proceeded to model fitting. We use a linear regression model with life expectancy as our response variable to answer the first research question. We fit three models to study the relationship between the independent variables and life expectancy, including only our *a priori* variables, using backward stepwise selection, and our final model, which combines our *a priori* variables with the result of the backward stepwise selection (Appendix C). During this process, we found that the Income composition of resources variable was, in fact, analogous to Human Development Index. We chose not to include it in our model for two reasons:
 
-- Human development index is a measure that already factors life expectancy, our response variable.
+* Human development index is a measure that already factors life expectancy, our response variable.
 
-- We suspected that it had a high correlation with the development status of a country. To test this, we fit a logistic regression model with status and income composition of resources. After we found that there was indeed a correlation, we excluded income composition of resources from our list of *a priori* variables and instead included the development status of a country and the average years of schooling of the population. 
+* We suspected that it had a high correlation with a country's development status. 
 
-To find the best fit parsimonious model, we evaluated the models using adjusted $R^2$ and BIC.
+To test this, we fit a logistic regression model with development status and income composition of resources. After we found that there was indeed a correlation, we excluded the income composition of resources from our list of *a priori* variables. Instead, we included the development status of a country and the average years of schooling of the population. 
 
-Finally, we obtain diagnostic information about the performance of our models.
-
-
+We evaluated the models using adjusted $R^2$ and BIC to find the best-fit model. Finally, we obtain diagnostic information about the performance of our models.
 
 ```{r model1_backward, include=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
 regfit.best <- regsubsets(Life.expectancy ~ ., data = subset(df_2014_cleaned, select = -c(Country, Year)), nvmax = 16)
@@ -200,7 +198,7 @@ reg.summary <- summary(regfit.best)
 
 ### Model Assessment
 
-Even though using only the model given by backward stepwise selection gives us a model with higher adjusted $R^2$ and a lower BIC value, we will choose the model that combines this result with our *a priori* variables to study their relationship with the response variable. To check if our final model follows the linear regression assumptions, we will plot the model summary plots. The resulting plots are available in Appendix D.
+The model given by backward stepwise selection provides us with a model with a higher adjusted $R^2$ and a lower BIC value; however, we will choose the model that combines this result with our *a priori* variables to study their relationship with the response variable. We will plot the model summary plots to check if our final model follows the linear regression assumptions. The resulting plots are available in Appendix D.
 
 The linearity assumptions are met throughout the model. We can note that all linear regression assumptions are roughly satisfied.
 
@@ -217,11 +215,17 @@ The variables that have a crucial impact on population longevity are
 * Average body mass index (BMI).
 * Government expenditure on healthcare (% total expenditure).
 * Average years of schooling.
-* The probability of dying between the ages of 15 and 60 per 1000 people.
+* The probability of dying between the ages of 15 and 60, per 1000 people.
 
-We observe from our Adjusted R-squared value 0.82, meaning that 82% of the variance in life expectancy is explained by the model. 
+We observe from our Adjusted R-squared value 0.82, meaning that the model explains 82% of the variance in life expectancy. 
 
-According to the statistics, for the residual summary statistics, we can see that the median should be close to 0, i.e., the mean of the residuals. 3Q and 1Q should be quantitatively close to each other and symmetrically distributed, and the errors follow a Gaussian distribution. Based on the p-value we get from the variables, we can conclude that the above five essential factors have an impact on life expectancy. If all other variables are held constant, Adults death probability increase by 0.1% will decrease Life expectancy by 0.03 years (11 days). General government expenditure on health Rise by 1% will increase Life expectancy by 0.03 years (11 days).HIV.aids death rates (which are kids from 0-4 yrs) Rise of 0.1% will decrease Life expectancy by 1.04 years (380 days). Average BMI Increase of one unit can increase Life expectancy by 0.04 years ( 17 days). Year of Schooling Rise per year will increase Life expectancy by 1.18 years ( 431 days). We also observe from our Adjusted R-squared value 0.82, meaning that the model explains 82% of the variance in life expectancy.
+According to the statistics, for the residual summary statistics, we can see that the median should be close to 0, i.e., the mean of the residuals. 3Q and 1Q should be quantitatively close to each other and symmetrically distributed, and the errors follow a Gaussian distribution. Based on the p-value we get from the variables, we can conclude that the above five essential factors impact life expectancy. If all other variables are held constant:
+
+* An increase of 0.1% in adult death probability will decrease life expectancy by 0.03 years (11 days). 
+* A 1% increase in government expenditure on healthcare will increase Life expectancy by 0.03 years (11 days)
+* A rise in the HIV/AIDS death rate (ages 0-4 yrs) will decrease Life expectancy by 1.04 years (380 days). 
+* An increase in average BMI by one unit can increase life expectancy by 0.04 years ( 17 days). 
+* Each additional year of schooling will increase life expectancy by 1.18 years ( 431 days).
 
 ## Question 2: (Inference)
 
@@ -229,7 +233,7 @@ According to the statistics, for the residual summary statistics, we can see tha
 
 From the Logistic Regression Models output table in Appendix E, we observe that only one predictor variable has a p-value less than 0.05 denoting it as a significant predictor: *Years of Schooling*. The interpretation of this predictor's coefficient in terms of the odds of a country being identified or labeled as a developed country is: while holding all other predictor variables constant, a one-year increase in *Years of Schooling* make it 2.39 ($e^{1.05}$) times more likely that country being identified as a developed country.
 
-We also examine multicollinearity concerns for all four model fits. The Variance Inflation Factors table in Appendix F clearly shows that the first model has significant problems, with two variables scoring a VIF of over 10. After we remove one variable, all subsequent models are satisfactory, with no variables scoring high on this test.
+We also examine multicollinearity concerns for all four model fits. The Variance Inflation Factors table below clearly shows that the first model has significant problems, with two variables scoring a VIF of over 10. After we remove one variable, all subsequent models are satisfactory, with no variables scoring high on this test.
 
 ```{r logistic, results="asis", out.width="90%", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE}
 le14_fit_full <- glm(Status_num ~ Life.expectancy + percentage.expenditure + BMI + Total.expenditure + HIV.AIDS + GDP + Income.composition.of.resources + log(pop)   + Schooling, data = df_2014_cleaned, family=binomial(link="logit"))
@@ -245,9 +249,32 @@ le14_fit_final_1 <- glm(Status_num ~ Life.expectancy  + BMI + Total.expenditure 
 le14_fit_one <- glm(Status_num ~ Schooling , data = df_2014_cleaned, family=binomial(link="logit"))
 ```
 
+```{r multicol test, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+vif_table_full <- vif(le14_fit_full)
+vif_table_semi_final <- vif(le14_fit_semi_final)
+vif_table_hdi <- vif(le14_fit_hdi)
+vif_table_final <- vif(le14_fit_final)
+vif_table_summary <- dplyr::bind_rows(vif_table_full, vif_table_semi_final,vif_table_hdi, vif_table_final)
+colnames(vif_table_summary) <- c("Life Expectancy","Health Expenditure/GDP per capita", "BMI", "Health Gov. Expenditure Percentage", "HIV/AIDS Deaths/1000 live births", "GDP per capita","Std. Income composition of resources", "Log of Population" , "Years of Schooling", "Log of GDP per capita")
+rownames(vif_table_summary) <- c("(1)", "(2)", "(3)", "(4)")
+stargazer(vif_table_summary,
+          summary=FALSE,
+          header=FALSE,
+          no.space = TRUE,
+          single.row = TRUE,
+          column.sep.width = "0.2pt",
+          digits = 2,
+          font.size = "small",
+          title='Variance Inflation Factors',
+          flip=TRUE,
+          type='latex'
+          )
+
+```
+
 ### Assessment
 
-Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realize the interpretation of *Income Composition of Resources* variable might be troublesome. It was recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1); however, its meaning could be more transparent. We decided to adjust the model to omit *Income Composition of Resources* variable and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive, True Negative, False Negative, and False Positive rates by comparing predicted and actual values. For prediction, we first use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%, with a 95% Confidence Interval of within 83% ~ 95%.
+Before assessing the accuracy of the potential model fit (3rd model) for this research question, we realize the interpretation of the *Income Composition of Resources* variable might be troublesome. It was recorded as Human Development Index in terms of income composition of resources (index ranging from 0 to 1); however, its meaning could be more transparent. We decided to adjust the model to omit the *Income Composition of Resources* variable and try to predict the development status of each country in the dataset. Those predictions are used to build a confusion matrix, shown in the table below. From this table, we can determine the True Positive, True Negative, False Negative, and False Positive rates by comparing predicted and actual values. For prediction, we first use the threshold of 0.5 to classify countries as developed or developing. The accuracy of this model is approximately 91\%, with a 95% Confidence Interval of within 83% ~ 95%.
 
 ```{r ConfMat, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 conf_mat <- confusionMatrix(as.factor(ifelse(fitted(le14_fit_final)>=0.5, "Developed", "Developing")), df_2014_cleaned$Status, positive = "Developed" )
@@ -286,7 +313,6 @@ invisible(roc(df_2014_cleaned$Status_num,fitted(le14_fit_final),plot=T,print.thr
 
 A final validation step for this model was to predict out-of-sample probabilities for the Year 2013 dataset using the "optimal" threshold, 0.232, as mentioned above, for inferring developed or developing status. The result of this experiment is shown in the table below. The accuracy of these predictions is still 0.91, with a 95% Confidence Interval of being within the range of 84 ~ 95%, which is approximately the same accuracy as our training dataset and should be considered a good fit.
 
-
 ```{r ConfMat_infer, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 df_2013_cleaned$pred<- predict(le14_fit_final, df_2013_cleaned, type="response")
 conf_mat_pred <- confusionMatrix(as.factor(ifelse(df_2013_cleaned$pred>=0.232, "Developed", "Developing")), df_2013_cleaned$Status, positive = "Developed" )
@@ -319,9 +345,13 @@ ggplot(df_2013_cleaned,aes(x=Schooling, y=pred), group = Status)+
   labs(title="Pred. Prob. of Identified as Developed vs Schooling", x= "Avg. Years of Scooling", y ="Pred. Prob. of being Developed Country")
 ```
 
-As you can see from the Average Years of Schooling vs Country Status boxplot in Appendix G, keeping all the other variables constant, if a given country has a population averaging over 15 years of schooling, we may infer that the country would be more likely identified as a developed country than a developing one. On the other hand, if a country with people's average years of schooling is lower than 15 years, according to our model, we shall infer the country is a developing country.
+As you can see from the Average Years of Schooling vs Country Status boxplot below, keeping all the other variables constant, if a given country has a population averaging over 15 years of schooling, we may infer that the country would be more likely identified as a developed country than a developing one. On the other hand, if a country with people's average years of schooling is lower than 15 years, according to our model, we shall infer the country is a developing country.
 
-
+```{r box, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="100%", fig.align='center', echo=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
+ggplot(df_2013_cleaned,aes(x=Status, y=Schooling, color=Status))+
+  geom_boxplot()+theme_classic()+
+  labs(title="Schooling vs Country Status Boxplot", x= "Country Status", y ="Avg. Years of Scooling")
+```
 
 ```{r ROCPred,include=FALSE, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="75%", fig.align='center', echo=FALSE, header=FALSE, message=FALSE, warning=FALSE,cache=FALSE, eval=FALSE}
 
@@ -563,41 +593,6 @@ From left to right, those models are:
 3. the potential model fit after all logistic transformations with Income Composition of Resources included
 
 4. the final model fit after dropping the Income Composition of Resources
-
-\newpage
-**Appendix F - VIF Table, Question 2**
-
-```{r multicol test, results="asis", echo=FALSE, header=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
-vif_table_full <- vif(le14_fit_full)
-vif_table_semi_final <- vif(le14_fit_semi_final)
-vif_table_hdi <- vif(le14_fit_hdi)
-vif_table_final <- vif(le14_fit_final)
-vif_table_summary <- dplyr::bind_rows(vif_table_full, vif_table_semi_final,vif_table_hdi, vif_table_final)
-colnames(vif_table_summary) <- c("Life Expectancy","Health Expenditure/GDP per capita", "BMI", "Health Gov. Expenditure Percentage", "HIV/AIDS Deaths/1000 live births", "GDP per capita","Std. Income composition of resources", "Log of Population" , "Years of Schooling", "Log of GDP per capita")
-rownames(vif_table_summary) <- c("(1)", "(2)", "(3)", "(4)")
-stargazer(vif_table_summary,
-          summary=FALSE,
-          header=FALSE,
-          no.space = TRUE,
-          single.row = TRUE,
-          column.sep.width = "0.2pt",
-          digits = 2,
-          font.size = "small",
-          title='Variance Inflation Factors',
-          flip=TRUE,
-          type='latex'
-          )
-
-```
-
-\newpage 
-**Appendix G - Boxplot, Question 2**
-
-```{r box, results="asis", fig.width=5, fig.height=3, fig.show='hold', out.width="100%", fig.align='center', echo=FALSE, message=FALSE, warning=FALSE,cache=FALSE}
-ggplot(df_2013_cleaned,aes(x=Status, y=Schooling, color=Status))+
-  geom_boxplot()+theme_classic()+
-  labs(title="Schooling vs Country Status Boxplot", x= "Country Status", y ="Avg. Years of Scooling")
-```
 
 \newpage
 # References
